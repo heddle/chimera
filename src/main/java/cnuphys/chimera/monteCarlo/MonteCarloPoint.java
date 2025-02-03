@@ -26,9 +26,9 @@ public class MonteCarloPoint {
 
 	private static Random random = new Random();
 
-	public MonteCarloPoint() {
+	public MonteCarloPoint(double radius) {
 
-		thetaPhi = new ThetaPhi();
+		thetaPhi = new ThetaPhi(radius, 0, 0);
 		ThetaPhi.setRandomThetaPhi(random, thetaPhi);
 		Point3D.Double cartesian = thetaPhi.toCartesian();
 

@@ -21,7 +21,7 @@ public class MonteCarlo {
 	 * @param progressBar the progress bar to update
 	 */
 
-	public static void runMonteCarlo(int numPoints, boolean clear, JProgressBar progressBar) {
+	public static void runMonteCarlo(final double radius, int numPoints, boolean clear, JProgressBar progressBar) {
 		// Disable the button while running
 		progressBar.setValue(0);
 		List<MonteCarloPoint> points = Chimera.getInstance().getMonteCarloPoints();
@@ -36,7 +36,7 @@ public class MonteCarlo {
 			protected List<MonteCarloPoint> doInBackground() {
 
 				for (int i = 0; i < numPoints; i++) {
-					MonteCarloPoint point = new MonteCarloPoint();
+					MonteCarloPoint point = new MonteCarloPoint(radius);
 					points.add(point);
 
                     // Add the tuple to the seen set

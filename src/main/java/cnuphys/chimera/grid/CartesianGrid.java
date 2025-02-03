@@ -130,11 +130,11 @@ public class CartesianGrid {
     }
 
 	public void setZMax(double zmax) {
-		zGrid.setMin(zmax);
+		zGrid.setMax(zmax);
 	}
 
 	public void setZMin(double zmin) {
-		zGrid.setMax(zmin);
+		zGrid.setMin(zmin);
 	}
     public int getNumZ() {
         return zGrid.getNum();

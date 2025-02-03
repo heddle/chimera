@@ -26,8 +26,8 @@ public class OrthographicProjection implements IMapProjection {
     private ArrayList<double[]> _lonRanges;
     private ArrayList<double[]> _latRanges;
 
-	public OrthographicProjection() {
-		this(SphericalGrid.R, Math.toRadians(-15), Math.toRadians(10));
+	public OrthographicProjection(double radius) {
+		this(radius, Math.toRadians(-15), Math.toRadians(10));
 	}
 
     /**

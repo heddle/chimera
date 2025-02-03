@@ -75,7 +75,7 @@ public class MonteCarloView2D extends MapView2D implements IFeedbackProvider {
 		menuBar.add(_projectionMenu);
 
 		//the default map projection
-		_projection = new MollweideProjection();
+		_projection = new MollweideProjection(Chimera.getInstance().getRadius());
 
 		setFeedback();
 
@@ -179,7 +179,8 @@ public class MonteCarloView2D extends MapView2D implements IFeedbackProvider {
 		double lon = Math.toDegrees(latLon.x);
 		double theta = 90 - lat;
 		double phi = lon;
-		ThetaPhi tp = new ThetaPhi(Math.PI/2 - latLon.y, latLon.x);
+		ThetaPhi tp = new ThetaPhi(Chimera.getInstance().getRadius(),
+				Math.PI/2 - latLon.y, latLon.x);
 		Point3D.Double cartesian = tp.toCartesian();
 
 		ChimeraGrid grid = Chimera.getInstance().getChimeraGrid();

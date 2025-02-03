@@ -24,10 +24,6 @@ public class MollweideProjection implements IMapProjection {
 		_radius = radius;
 	}
 
-	public MollweideProjection() {
-		this(SphericalGrid.R);
-	}
-
     @Override
     public void latLonToXY(Point2D.Double latLon, Point2D.Double xy) {
         double lon = latLon.x; // Longitude in radians

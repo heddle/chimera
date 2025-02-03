@@ -3,6 +3,7 @@ package cnuphys.chimera.grid.mapping;
 import java.util.EnumMap;
 
 import cnuphys.bCNU.component.EnumComboBox;
+import cnuphys.chimera.frame.Chimera;
 
 public enum EProjection {
 	MOLLWEIDE, MERCATOR, ORTHOGRAPHIC;
@@ -69,14 +70,16 @@ public enum EProjection {
 		if (val == null) {
 			return null;
 		}
+		
+		double radius = Chimera.getInstance().getRadius();
 
 		switch (val) {
 		case MOLLWEIDE:
-			return new MollweideProjection();
+			return new MollweideProjection(radius);
 		case MERCATOR:
-			return new MercatorProjection();
+			return new MercatorProjection(radius);
 		case ORTHOGRAPHIC:
-			return new OrthographicProjection();
+			return new OrthographicProjection(radius);
 		}
        return null;
 

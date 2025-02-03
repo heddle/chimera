@@ -81,9 +81,31 @@ public class Chimera extends BaseMDIApplication implements IGridChangeListener {
 
 	//create the initial (default) grid
 	private void createInitialGrid() {
-		CartesianGrid cartGrid = new CartesianGrid(-10, 10, 103, -10, 10, 163, -10, 10, 103, 0, 0, 0);
-		SphericalGrid sphereGrid = new SphericalGrid(49, 33, 1, 0, 0);
+		double radius = 4.73338652;
+		
+//		CartesianGrid cartGrid = new CartesianGrid(-10, 10, 103, -10, 10, 163, -10, 10, 103, 0, 0, 0);
+//		SphericalGrid sphereGrid = new SphericalGrid(49, 33, 1, 0, 0);
+		
+		//other 1 grid page 45
+//		CartesianGrid cartGrid = new CartesianGrid(-48.3935182, 48.3935182, 100, 
+//				-29.349902, 20.4623830, 100, 
+//				-48.3935182, 48.3935182, 
+//				100, 0, 0, 0);
+//		SphericalGrid sphereGrid = new SphericalGrid(48, 33, radius, 0, 0);
+		
+		//defaut test grid page 416
+		CartesianGrid cartGrid = new CartesianGrid(-46.8391, 50, 103, 
+				-28.6998, 300, 163, 
+				-46.8391, 50, 103, 
+				0, 0, 0);
+		SphericalGrid sphereGrid = new SphericalGrid(49, 33, 4.60993, 0, 0);
+
+
 		_chimeraGrid = new ChimeraGrid(cartGrid, sphereGrid);
+	}
+	
+	public double getRadius() {
+		return _chimeraGrid.getSphericalGrid().getRadius();
 	}
 
 	/**
@@ -151,6 +173,19 @@ public class Chimera extends BaseMDIApplication implements IGridChangeListener {
 		MenuManager mmgr = MenuManager.getInstance();
 		// the options menu
 		addToOptionMenu(mmgr.getOptionMenu());
+		
+		JMenu menu = new JMenu("Intersections");
+		
+		JMenuItem item = new JMenuItem("Find Intersecting Cells");
+		item.addActionListener(e -> handleIntersectingCells());
+		menu.add(item);
+		getJMenuBar().add(menu);
+
+	}
+	
+	//handle intersecting cells
+	private void handleIntersectingCells() {
+		_chimeraGrid.findIntersectingCells();
 
 	}
 

@@ -10,6 +10,7 @@ import javax.swing.JProgressBar;
 import cnuphys.bCNU.dialog.SimpleDialog;
 import cnuphys.chimera.dialog.LabeledTextField;
 import cnuphys.chimera.dialog.VerticalPanel;
+import cnuphys.chimera.frame.Chimera;
 import cnuphys.chimera.grid.ChimeraGrid;
 
 public class MonteCarloDialog extends SimpleDialog {
@@ -63,7 +64,8 @@ public class MonteCarloDialog extends SimpleDialog {
 	public void handleCommand(String command) {
 		reason = command;
 		if (command.equals(RUN)) {
-	    	MonteCarlo.runMonteCarlo(getNPoints(), clearExistingData(), _progressBar);
+	    	MonteCarlo.runMonteCarlo(Chimera.getInstance().getRadius(),
+	    			getNPoints(), clearExistingData(), _progressBar);
 		}
 		else {
 			System.err.println("Hit Cancel");

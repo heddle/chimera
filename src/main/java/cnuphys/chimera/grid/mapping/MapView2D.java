@@ -5,6 +5,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.geom.Rectangle2D;
 
 import cnuphys.bCNU.view.BaseView;
+import cnuphys.chimera.frame.Chimera;
 import cnuphys.chimera.grid.SphericalGrid;
 
 public class MapView2D extends BaseView implements MouseMotionListener {
@@ -69,7 +70,7 @@ public class MapView2D extends BaseView implements MouseMotionListener {
 
 	//return the radius, though at least for now keep fixed at 1
 	protected static double getRadius() {
-		return SphericalGrid.R;
+		return Chimera.getInstance().getRadius();
 	}
 
 

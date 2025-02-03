@@ -13,6 +13,7 @@ public class ThetaPhi extends Point2D.Double {
     /** The degree character */
     public static final String DEGREE = "\u00B0";
 
+    private double radius;
 
     /**
      * Constructor for ThetaPhi.
@@ -20,18 +21,13 @@ public class ThetaPhi extends Point2D.Double {
      * @param theta The polar angle in the range [0, π].
      * @param phi   The azimuthal angle in the range [-π, π].
      */
-    public ThetaPhi(double theta, double phi) {
+    public ThetaPhi(double radius, double theta, double phi) {
+    	this.radius = radius;
         setTheta(theta);
         setPhi(phi);
     }
 
-    /**
-     * Default constructor initializes theta and phi to 0.
-     */
-    public ThetaPhi() {
-        this(0.0, 0.0);
-    }
-
+ 
     /**
      * Gets the polar angle theta in radians.
      *
@@ -91,9 +87,9 @@ public class ThetaPhi extends Point2D.Double {
      */
 	public void toCartesian(Point3D.Double cartesian) {
 		double sinTheta = Math.sin(getTheta());
-		cartesian.x = sinTheta * Math.cos(getPhi());
-		cartesian.y = sinTheta * Math.sin(getPhi());
-		cartesian.z = Math.cos(getTheta());
+		cartesian.x = radius*sinTheta * Math.cos(getPhi());
+		cartesian.y = radius*sinTheta * Math.sin(getPhi());
+		cartesian.z = radius*Math.cos(getTheta());
 	}
 
 

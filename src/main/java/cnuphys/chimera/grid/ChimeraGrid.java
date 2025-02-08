@@ -1,81 +1,173 @@
 package cnuphys.chimera.grid;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
+import cnuphys.bCNU.util.Bits;
+import cnuphys.chimera.util.ChimeraPlane;
+import cnuphys.chimera.util.Point3D;
 
+/**
+ * Represents a Chimera grid, which combines a CartesianGrid and a SphericalGrid.
+ * This class identifies and stores the indices of Cartesian grid cells that intersect
+ * the sphere defined by the SphericalGrid.
+ */
 public class ChimeraGrid {
-    private CartesianGrid cartGrid;
-    private SphericalGrid sphGrid;
+    
+    private final CartesianGrid cartesianGrid;
+    private final SphericalGrid sphericalGrid;
+    
     private List<Threeplet> intersectingCells = new ArrayList<>();
 
-    public ChimeraGrid(CartesianGrid cartGrid, SphericalGrid sphGrid) {
-        if (cartGrid == null || sphGrid == null) {
-            throw new IllegalArgumentException("Both grids must be non-null.");
-        }
-        this.cartGrid = cartGrid;
-        this.sphGrid = sphGrid;
+    public ChimeraGrid(CartesianGrid cartesianGrid, SphericalGrid sphericalGrid) {
+        this.cartesianGrid = new CartesianGrid(cartesianGrid); 
+        this.sphericalGrid = new SphericalGrid(sphericalGrid);
     }
 
-    public void findIntersectingCells() {
-        double sphereRadius = sphGrid.getRadius();
-        
-        for (int ix = 0; ix < cartGrid.getNumX() - 1; ix++) {
-            for (int iy = 0; iy < cartGrid.getNumY() - 1; iy++) {
-                for (int iz = 0; iz < cartGrid.getNumZ() - 1; iz++) {
-                    double[][] corners = getCellCorners(ix, iy, iz);
-                    int inside = 0, outside = 0;
-                    for (double[] c : corners) {
-                        double distSquared = c[0] * c[0] + c[1] * c[1] + c[2] * c[2];
-                        if (distSquared < sphereRadius * sphereRadius) inside++;
-                        else outside++;
-                    }
-                    if (inside > 0 && outside > 0) intersectingCells.add(new Threeplet(ix, iy, iz));
-                }
-            }
-        }
-        System.out.println("Number of intersecting cells: " + intersectingCells.size());
-    }
-    
-	public void reset() {
-		intersectingCells.clear();
-	}
-    
-    private double[][] getCellCorners(int ix, int iy, int iz) {
-        double xMin = cartGrid.getXMin();
-        double yMin = cartGrid.getYMin();
-        double zMin = cartGrid.getZMin();
-        double xDel = cartGrid.getXDel();
-        double yDel = cartGrid.getYDel();
-        double zDel = cartGrid.getZDel();
-        
-        double[][] corners = new double[8][3];
-        for (int dx = 0; dx <= 1; dx++) {
-            for (int dy = 0; dy <= 1; dy++) {
-                for (int dz = 0; dz <= 1; dz++) {
-                    int index = dx * 4 + dy * 2 + dz;
-                    corners[index][0] = xMin + (ix + dx) * xDel;
-                    corners[index][1] = yMin + (iy + dy) * yDel;
-                    corners[index][2] = zMin + (iz + dz) * zDel;
-                }
-            }
-        }
-        return corners;
+    public ChimeraGrid(ChimeraGrid other) {
+        this.cartesianGrid = new CartesianGrid(other.cartesianGrid);
+        this.sphericalGrid = new SphericalGrid(other.sphericalGrid);
+        this.intersectingCells = new ArrayList<>(other.intersectingCells);
     }
     
 	public CartesianGrid getCartesianGrid() {
-		return cartGrid;
-	}
-	
-	public void setCartesianGrid(CartesianGrid cartGrid) {
-		this.cartGrid = cartGrid;
+		return cartesianGrid;
 	}
 	
 	public SphericalGrid getSphericalGrid() {
-		return sphGrid;
+		return sphericalGrid;
 	}
-	
-	public void setSphericalGrid(SphericalGrid sphGrid) {
-		this.sphGrid = sphGrid;
+
+	public List<Threeplet> getIntersectingCells() {
+		return intersectingCells;
 	}
+
+    public void reset() {
+        intersectingCells.clear();
+    }
+
+	/**
+	 * Identifies the Cartesian grid cells that intersect the sphere defined by the
+	 * SphericalGrid.
+	 */
+    
+    int kisscount = 0;
+    public void findIntersectingCells() {
+        reset();
+
+        double sphereRadius = sphericalGrid.getRadius();
+        double rSquared = sphereRadius * sphereRadius;
+
+        int nx = cartesianGrid.getNumX() - 1;
+        int ny = cartesianGrid.getNumY() - 1;
+        int nz = cartesianGrid.getNumZ() - 1;
+
+		for (int iz = 0; iz < nz; iz++) {
+			for (int iy = 0; iy < ny; iy++) {
+				for (int ix = 0; ix < nx; ix++) {
+					
+					double[][] cell = GridSupport.getCellCorners(cartesianGrid, ix, iy, iz);
+
+			        int cornerBits = 0;
+					boolean hasInside = false;
+					boolean hasOutside = false;
+
+					// check each corner of the cell
+					for (int canonicalCorner = 0; canonicalCorner < 8; canonicalCorner++) {
+						double[] corner = cell[canonicalCorner];
+						double x = corner[0], y = corner[1], z = corner[2];
+						double distSquared = x * x + y * y + z * z;
+
+	                    if (distSquared < rSquared) {
+	                    	cornerBits = Bits.setBit(cornerBits, GridSupport.CORNERBITS[canonicalCorner]);
+                            hasInside = true;
+                        } else {
+                            hasOutside = true;
+                        }
+					} //end loop over corners
+
+					//if have corners on both sides of the sphere, then the cell intersects
+                    //if no traditional intersection, must do the kiss test!
+                    //for cells with no inside points
+                    if (hasInside && hasOutside) {
+                        intersectingCells.add(new Threeplet(ix, iy, iz, cornerBits));
+                    }
+                    else if (!hasInside) {
+						int kissFace = kissTest2(cell, sphereRadius);
+						if (kissFace >= 0) {
+							intersectingCells.add(new Threeplet(ix, iy, iz, cornerBits));
+						}
+					}
+
+				} //x
+            }// y
+        } //z
+        System.out.println("Intersecting cells count: " + intersectingCells.size());
+        Threeplet.report(intersectingCells);
+    }
+
+    //do the hideous kiss test (this is the test devised by chatGPT)
+    private int kissTest(double[][] corners, double sphereRadius) {
+    	
+    	//get the closest face
+    	int closestFace = -1;
+    	double minDist = Double.MAX_VALUE;
+		for (int face = 0; face < 6; face++) {
+			double distsq = GridSupport.faceAverageDistanceSquare(corners, face);
+			if (distsq < minDist) {
+				minDist = distsq;
+				closestFace = face;
+			}
+		}
+		
+		double[][] faceCorners = GridSupport.getFaceCorners(corners, closestFace);
+		double[] closePoint = ClosestPointOnFace.closestPointOnFace(faceCorners);
+		
+		if (closePoint == null) {
+			return -1;
+		}
+		double x = closePoint[0], y = closePoint[1], z = closePoint[2];
+		double distsq = x * x + y * y + z * z;
+		if (distsq < sphereRadius * sphereRadius) {
+			return closestFace;
+        }
+   	
+    	return -1;
+    }
+    
+    //do the hideous kiss test (this is the test used previously)
+    private int kissTest2(double[][] corners, double sphereRadius) {
+
+    	//get the closest face
+    	int closestFace = -1;
+    	double minDist = Double.MAX_VALUE;
+		for (int face = 0; face < 6; face++) {
+			double distsq = GridSupport.faceAverageDistanceSquare(corners, face);
+			if (distsq < minDist) {
+				minDist = distsq;
+				closestFace = face;
+			}
+		}
+		
+		double[][] faceCorners = GridSupport.getFaceCorners(corners, closestFace);
+
+		Point3D.Double p0 = new Point3D.Double(faceCorners[0][0], faceCorners[0][1], faceCorners[0][2]);
+		Point3D.Double p1 = new Point3D.Double(faceCorners[1][0], faceCorners[1][1], faceCorners[1][2]);
+		Point3D.Double p2 = new Point3D.Double(faceCorners[2][0], faceCorners[2][1], faceCorners[2][2]);
+		Point3D.Double v = new Point3D.Double();
+		
+		ChimeraPlane plane = new ChimeraPlane(p0, p1, p2);
+		plane.getPerpendicular(v);
+		
+		if (plane.isInAndContained(v) && v.length() < sphereRadius) {
+			return closestFace;
+		}
+    	
+    	return -1;
+    }
+
+    	 
+    
+
 }

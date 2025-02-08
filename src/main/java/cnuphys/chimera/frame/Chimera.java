@@ -19,17 +19,14 @@ import cnuphys.bCNU.menu.MenuManager;
 import cnuphys.bCNU.util.Environment;
 import cnuphys.bCNU.util.FileUtilities;
 import cnuphys.bCNU.util.PropertySupport;
-import cnuphys.chimera.dialog.gridparams.GridEditorDialog;
-import cnuphys.chimera.grid.CartesianGrid;
 import cnuphys.chimera.grid.ChimeraGrid;
 import cnuphys.chimera.grid.Fiveplet;
-import cnuphys.chimera.grid.IGridChangeListener;
-import cnuphys.chimera.grid.SphericalGrid;
+import cnuphys.chimera.grid.TestGrid;
 import cnuphys.chimera.monteCarlo.MonteCarloDialog;
 import cnuphys.chimera.monteCarlo.MonteCarloPoint;
 
 @SuppressWarnings("serial")
-public class Chimera extends BaseMDIApplication implements IGridChangeListener {
+public class Chimera extends BaseMDIApplication {
 
 
 	//the singleton
@@ -38,9 +35,6 @@ public class Chimera extends BaseMDIApplication implements IGridChangeListener {
 
 	// chimera release
 	private static final String RELEASE = "0.1";
-
-	// the grid editor dialog
-	private GridEditorDialog _gridDialog;
 
 	private MonteCarloDialog _monteCarloDialog;
 
@@ -81,29 +75,9 @@ public class Chimera extends BaseMDIApplication implements IGridChangeListener {
 
 	//create the initial (default) grid
 	private void createInitialGrid() {
-		double radius = 4.73338652;
-		
-//		CartesianGrid cartGrid = new CartesianGrid(-10, 10, 103, -10, 10, 163, -10, 10, 103, 0, 0, 0);
-//		SphericalGrid sphereGrid = new SphericalGrid(49, 33, 1, 0, 0);
-		
-		//other 1 grid page 45
-//		CartesianGrid cartGrid = new CartesianGrid(-48.3935182, 48.3935182, 100, 
-//				-29.349902, 20.4623830, 100, 
-//				-48.3935182, 48.3935182, 
-//				100, 0, 0, 0);
-//		SphericalGrid sphereGrid = new SphericalGrid(48, 33, radius, 0, 0);
-		
-		//defaut test grid page 416
-		CartesianGrid cartGrid = new CartesianGrid(-46.8391, 50, 103, 
-				-28.6998, 300, 163, 
-				-46.8391, 50, 103, 
-				0, 0, 0);
-		SphericalGrid sphereGrid = new SphericalGrid(49, 33, 4.60993, 0, 0);
-
-
-		_chimeraGrid = new ChimeraGrid(cartGrid, sphereGrid);
+		_chimeraGrid = TestGrid.primaryTestGrid();
 	}
-	
+
 	public double getRadius() {
 		return _chimeraGrid.getSphericalGrid().getRadius();
 	}
@@ -132,14 +106,6 @@ public class Chimera extends BaseMDIApplication implements IGridChangeListener {
 	 */
 	public ChimeraGrid getChimeraGrid() {
 		return _chimeraGrid;
-	}
-
-	/**
-	 * Get the copy of the grid in the editor
-	 * @return the copy of the grid in the editor
-	 */
-	public ChimeraGrid getGridCopy() {
-		return _gridDialog.getGridCopy();
 	}
 
 	/**
@@ -173,16 +139,16 @@ public class Chimera extends BaseMDIApplication implements IGridChangeListener {
 		MenuManager mmgr = MenuManager.getInstance();
 		// the options menu
 		addToOptionMenu(mmgr.getOptionMenu());
-		
+
 		JMenu menu = new JMenu("Intersections");
-		
+
 		JMenuItem item = new JMenuItem("Find Intersecting Cells");
 		item.addActionListener(e -> handleIntersectingCells());
 		menu.add(item);
 		getJMenuBar().add(menu);
 
 	}
-	
+
 	//handle intersecting cells
 	private void handleIntersectingCells() {
 		_chimeraGrid.findIntersectingCells();
@@ -191,25 +157,11 @@ public class Chimera extends BaseMDIApplication implements IGridChangeListener {
 
 	// add to the options menu
 	private void addToOptionMenu(JMenu omenu) {
-		JMenuItem gridItem = new JMenuItem("Chimera Grid Parameters...");
-	    gridItem.addActionListener(e -> handleGridDialog());
 
 	    JMenuItem monteCarloItem = new JMenuItem("Monte Carlo...");
 	    monteCarloItem.addActionListener(e -> handleMonteCarloDialog());
 
-
-	    omenu.add(gridItem);
 	    omenu.add(monteCarloItem);
-	}
-
-	//handle selection of the grid dialog
-	private void handleGridDialog() {
-		if (_gridDialog == null) {
-			_gridDialog = new GridEditorDialog(this, _chimeraGrid);
-			_gridDialog.addGridChangeListener(this);
-		}
-		_gridDialog.setVisible(true);
-		_gridDialog.toFront();
 	}
 
 	//handle selection of the monte carlo dialog
@@ -250,14 +202,6 @@ public class Chimera extends BaseMDIApplication implements IGridChangeListener {
 	    }
 	}
 
-
-	@Override
-	public void gridChanged() {
-		System.err.println("Grid changed");
-		_points.clear();
-		_seenTuples.clear();
-		refresh();
-	}
 
 	/**
 	 * The main program

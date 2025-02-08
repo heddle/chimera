@@ -2,183 +2,163 @@ package cnuphys.chimera.grid;
 
 import cnuphys.chimera.util.MathUtil;
 import cnuphys.chimera.util.ThetaPhi;
+import java.util.Arrays;
 
+/**
+ * A grid in spherical coordinates. The grid is defined by:
+ * <ul>
+ *   <li>A theta (polar) grid whose values must span 0 to π (within 1e-6).</li>
+ *   <li>A phi (azimuthal) grid whose values are normalized into the range [-π, π]
+ *       and must span -π to π (within 1e-6).</li>
+ *   <li>A fixed radius.</li>
+ *   <li>Two rotation angles: alpha (rotation about the x-axis) and beta (rotation about the new z-axis).
+ *       These rotate global spherical coordinates into the local grid coordinates.</li>
+ * </ul>
+ */
 public class SphericalGrid {
 
+    private final Grid1D thetaGrid;
+    private final Grid1D phiGrid;
+    private final double radius;
+    private double alpha;  // Rotation about the x-axis (in radians)
+    private double beta;   // Rotation about the new z-axis (in radians)
 
-
-    private final Grid1D thetaGrid;  // Grid for theta (polar angle)
-    private final Grid1D phiGrid;    // Grid for phi (azimuthal angle)
-    private double alpha;     // Rotation about the x-axis
-    private double beta;      // Rotation about the new z-axis
-
-    private double sina, cosa;      // Sine and cosine of alpha
-    private double sinb, cosb;      // Sine and cosine of beta
-    
-    private double radius; // Radius of the sphere
+    private static final double TOL = 1e-6;
 
     /**
-     * Constructor for the SphericalGrid class.
+     * Constructs a SphericalGrid.
      *
-     * @param numTheta Number of points in the theta grid.
-     * @param numPhi   Number of points in the phi grid.
-     * @param radius   Radius of the sphere.
-     * @param alpha    Rotation angle about the x-axis in radians.
-     * @param beta     Rotation angle about the new z-axis in radians.
+     * @param thetaArray An array of polar angles (in radians). Must span 0 to π (within 1e-6).
+     * @param phiArray   An array of azimuthal angles (in radians). Normalized to [-π, π] and must span -π to π (within 1e-6).
+     * @param radius     The fixed radius (must be positive).
+     * @param alpha      Rotation about the x-axis (in radians).
+     * @param beta       Rotation about the new z-axis (in radians).
+     * @throws IllegalArgumentException if the grid arrays do not span the required ranges or if radius is nonpositive.
      */
-    public SphericalGrid(int numTheta, int numPhi, double radius, double alpha, double beta) {
-        this.thetaGrid = new Grid1D(0.0, Math.PI, numTheta);
-        this.phiGrid = new Grid1D(-Math.PI, Math.PI, numPhi);
+    public SphericalGrid(double[] thetaArray, double[] phiArray, double radius, double alpha, double beta) {
+        if (thetaArray == null || thetaArray.length == 0) {
+            throw new IllegalArgumentException("Theta grid must not be empty.");
+        }
+        if (phiArray == null || phiArray.length == 0) {
+            throw new IllegalArgumentException("Phi grid must not be empty.");
+        }
+        if (radius <= 0) {
+            throw new IllegalArgumentException("Radius must be positive.");
+        }
         this.radius = radius;
         this.alpha = alpha;
         this.beta = beta;
 
-        // Precompute sine and cosine values for alpha and beta
-        sina = Math.sin(alpha);
-        cosa = Math.cos(alpha);
-        sinb = Math.sin(beta);
-        cosb = Math.cos(beta);
+        // Process theta grid
+        double[] thetaCopy = Arrays.copyOf(thetaArray, thetaArray.length);
+        Arrays.sort(thetaCopy);
+        if (Math.abs(thetaCopy[0]) > TOL || Math.abs(thetaCopy[thetaCopy.length - 1] - Math.PI) > TOL) {
+            throw new IllegalArgumentException("Theta grid must span from 0 to π within tolerance " + TOL);
+        }
+        thetaGrid = new Grid1D(thetaCopy);
+
+        // Process phi grid
+        double[] phiCopy = Arrays.copyOf(phiArray, phiArray.length);
+//        for (int i = 0; i < phiCopy.length; i++) {
+//            phiCopy[i] = MathUtil.normalizeAngle(phiCopy[i]);
+//        }
+        Arrays.sort(phiCopy);
+        if (Math.abs(phiCopy[0] + Math.PI) > TOL) {
+            throw new IllegalArgumentException("phigrid[0] grid must be close to -π within tolerance " + TOL + " but is " + phiCopy[0]);
+        }
+        if (Math.abs(phiCopy[phiCopy.length - 1] - Math.PI) > TOL) {
+			throw new IllegalArgumentException("phigrid[phigrid.length - 1] grid must be close to π within tolerance "
+					+ TOL + " but is " + phiCopy[phiCopy.length - 1]);
+		}
+
+        phiGrid = new Grid1D(phiCopy);
     }
     
-	public double getRadius() {
-		return radius;
-	}
-
-	public void setAlpha(double alpha) {
-		this.alpha = alpha;
-		sina = Math.sin(alpha);
-		cosa = Math.cos(alpha);
-	}
-
-	public void setBeta(double beta) {
-		this.beta = beta;
-		sinb = Math.sin(beta);
-		cosb = Math.cos(beta);
-	}
-
-	public double getAlpha() {
-		return alpha;
-	}
-
-	public double getBeta() {
-		return beta;
-	}
-
-    public int getNumTheta() {
-        return thetaGrid.getNum();
-    }
-
-    public double getThetaDel() {
-        return thetaGrid.getSpacing();
-    }
-
-    public int getNumPhi() {
-        return phiGrid.getNum();
-    }
-
-    public double getPhiDel() {
-        return phiGrid.getSpacing();
-    }
-
-	public void setNumTheta(int numTheta) {
-		thetaGrid.setNum(numTheta);
-	}
-
-	public void setNumPhi(int numPhi) {
-		phiGrid.setNum(numPhi);
-	}
-
-
     /**
-     * Copy constructor to create a deep copy of the source SphericalGrid
-     * @param source the source SphericalGrid to copy
-     */
-	public SphericalGrid(SphericalGrid source) {
-		this.thetaGrid = new Grid1D(source.thetaGrid);
-		this.phiGrid = new Grid1D(source.phiGrid);
-		this.radius = source.radius;
-		this.alpha = source.alpha;
-		this.beta = source.beta;
-		this.sina = source.sina;
-		this.cosa = source.cosa;
-		this.sinb = source.sinb;
-		this.cosb = source.cosb;
-	}
-
-    /**
-     * Gets the grid indices for the given ThetaPhi object.
+     * Copy constructor for SphericalGrid.
      *
-     * @param thetaPhi The ThetaPhi object with theta and phi values.
-     * @param indices  An int array where the theta and phi indices will be stored.
+     * @param other The SphericalGrid instance to copy.
      */
-    public void getIndices(ThetaPhi thetaPhi, int[] indices) {
-        getIndices(thetaPhi.getTheta(), thetaPhi.getPhi(), indices);
-    }
-
-    /**
-     * Gets the grid indices for the given global theta and phi values.
-     *
-     * @param theta   The polar angle in global coordinates.
-     * @param phi     The azimuthal angle in global coordinates.
-     * @param indices An int array where the theta and phi indices will be stored.
-     */
-    public void getIndices(double theta, double phi, int[] indices) {
-        // Rotate the global coordinates if alpha or beta are non-zero
-        if (alpha != 0 || beta != 0) {
-            double[] rotated = rotateGlobalToLocal(theta, phi);
-            theta = rotated[0];
-            phi = rotated[1];
+    public SphericalGrid(SphericalGrid other) {
+        if (other == null) {
+            throw new IllegalArgumentException("Cannot copy a null SphericalGrid.");
         }
 
-        // Get the indices from the grids
-        indices[0] = thetaGrid.getIndex(theta);  // Theta index
-        indices[1] = phiGrid.getIndex(phi);      // Phi index
+        // Copy theta and phi grids
+        this.thetaGrid = new Grid1D(other.thetaGrid);
+        this.phiGrid = new Grid1D(other.phiGrid);
+
+        // Copy primitive fields
+        this.radius = other.radius;
+        this.alpha = other.alpha;
+        this.beta = other.beta;
+    }
+   
+
+    public Grid1D getThetaGrid() { return thetaGrid; }
+    public Grid1D getPhiGrid() { return phiGrid; }
+    public double getRadius() { return radius; }
+    public double getAlpha() { return alpha; }
+    public double getBeta() { return beta; }
+    public void setAlpha(double alpha) { this.alpha = alpha; }
+    public void setBeta(double beta) { this.beta = beta; }
+    public double getThetaMin() { return thetaGrid.min(); }
+    public double getThetaMax() { return thetaGrid.max(); }
+    public int getNumTheta() { return thetaGrid.numPoints(); }
+    public double getPhiMin() { return phiGrid.min(); }
+    public double getPhiMax() { return phiGrid.max(); }
+    public int getNumPhi() { return phiGrid.numPoints(); }
+    
+    public double[] getThetaArray() { return thetaGrid.getPoints(); }
+    public double[] getPhiArray() { return phiGrid.getPoints(); }
+
+    /**
+     * Converts global (theta, phi) to local grid coordinates.
+     *
+     * @param theta the global polar angle (in radians)
+     * @param phi   the global azimuthal angle (in radians)
+     * @return {localTheta, localPhi}
+     */
+    private double[] rotateGlobalToLocal(double theta, double phi) {
+        double sinTheta = Math.sin(theta);
+        double x = radius * sinTheta * Math.cos(phi);
+        double y = radius * sinTheta * Math.sin(phi);
+        double z = radius * Math.cos(theta);
+
+        double y1 = y * Math.cos(alpha) - z * Math.sin(alpha);
+        double z1 = y * Math.sin(alpha) + z * Math.cos(alpha);
+        double x1 = x;
+
+        double x2 = x1 * Math.cos(beta) - y1 * Math.sin(beta);
+        double y2 = x1 * Math.sin(beta) + y1 * Math.cos(beta);
+        double z2 = z1;
+
+        double localTheta = Math.acos(z2 / radius);
+        double localPhi = MathUtil.normalizeAngle(Math.atan2(y2, x2));
+
+        return new double[]{localTheta, localPhi};
     }
 
     /**
-     * Rotates global spherical coordinates (theta, phi) to the local sphere coordinate system.
+     * Given global (theta, phi), computes the grid indices after rotation.
      *
-     * @param theta The polar angle in global coordinates.
-     * @param phi   The azimuthal angle in global coordinates.
-     * @return A double array with rotated theta and phi values.
+     * @param theta   the global polar angle (in radians)
+     * @param phi     the global azimuthal angle (in radians)
+     * @param indices an int array of length at least 2; stores {thetaIndex, phiIndex}.
      */
-    private double[] rotateGlobalToLocal(double theta, double phi) {
-        // Convert spherical to Cartesian coordinates
-        double x = radius * Math.sin(theta) * Math.cos(phi);
-        double y = radius * Math.sin(theta) * Math.sin(phi);
-        double z = radius * Math.cos(theta);
-
-        // First rotation: Rotate about the x-axis by alpha
-        double zRot1 = z * cosa - y * sina;
-        double yRot1 = z * sina + y * cosa;
-        double xRot1 = x;
-
-        // Second rotation: Rotate about the new z-axis by beta
-        double xRot2 = xRot1 * cosb - yRot1 * sinb;
-        double yRot2 = xRot1 * sinb + yRot1 * cosb;
-        double zRot2 = zRot1;
-
-        // Convert back to spherical coordinates
-        double thetaRot = Math.acos(zRot2 / radius);  // New theta
-        double phiRot = Math.atan2(yRot2, xRot2);     // New phi
-        return new double[]{thetaRot, MathUtil.normalizeAngle(phiRot)};
+    public void getIndices(double theta, double phi, int[] indices) {
+        if (indices == null || indices.length < 2) {
+            throw new IllegalArgumentException("indices array must have at least length 2");
+        }
+        double[] local = rotateGlobalToLocal(theta, phi);
+        indices[0] = thetaGrid.locateInterval(local[0]);
+        indices[1] = phiGrid.locateInterval(local[1]);
     }
 
-    public static void main(String[] args) {
-        // Example usage
-        int numTheta = 10;
-        int numPhi = 20;
-        double radius = 1.0;
-        double alpha = Math.PI / 4;  // 45 degrees
-        double beta = Math.PI / 6;   // 30 degrees
-
-        SphericalGrid sphericalGrid = new SphericalGrid(numTheta, numPhi, radius, alpha, beta);
-        ThetaPhi thetaPhi = new ThetaPhi(radius, Math.PI / 3, Math.PI / 4);
-
-        int[] indices = new int[2];
-        sphericalGrid.getIndices(thetaPhi, indices);
-
-        System.out.println("Theta index: " + indices[0]);
-        System.out.println("Phi index: " + indices[1]);
+    public void getIndices(ThetaPhi thetaPhi, int[] indices) {
+        if (thetaPhi == null) {
+            throw new IllegalArgumentException("ThetaPhi cannot be null.");
+        }
+        getIndices(thetaPhi.getTheta(), thetaPhi.getPhi(), indices);
     }
 }

@@ -10,6 +10,7 @@ import java.awt.geom.Point2D;
 import cnuphys.bCNU.graphics.container.IContainer;
 import cnuphys.chimera.frame.Chimera;
 import cnuphys.chimera.grid.ChimeraGrid;
+import cnuphys.chimera.grid.Grid1D;
 import cnuphys.chimera.grid.SphericalGrid;
 
 public class MollweideProjection implements IMapProjection {
@@ -76,24 +77,26 @@ public class MollweideProjection implements IMapProjection {
 		Graphics2D g2 = (Graphics2D) g;
 		ChimeraGrid grid = Chimera.getInstance().getChimeraGrid();
 		SphericalGrid sgrid = grid.getSphericalGrid();
+		Grid1D thetaGrid = sgrid.getThetaGrid();
+		Grid1D phiGrid = sgrid.getPhiGrid();
 
 		// Define ranges and step sizes for sampling
-		double latStep = sgrid.getThetaDel(); // Step size for latitude (radians)
-		double lonStep = sgrid.getPhiDel(); // Step size for longitude (radians)
 		int numLat = sgrid.getNumTheta(); // Number of latitude samples
 		int numLon = sgrid.getNumPhi(); // Number of longitude samples
 
 		drawBoundary(g, container, Color.black);
 
 		for (int i = 0; i < numLat; i++) {
-			double lat = Math.PI / 2 - i * latStep;
+			double theta = thetaGrid.valueAt(i);
+			double lat = Math.PI / 2 - theta;
 			drawLatitudeLine(g2, container, lat);
 		}
 
 		for (int i = 0; i < numLon; i++) {
-			double lon = -Math.PI + i * lonStep;
+			double lon = phiGrid.valueAt(i);
 			drawLongitudeLine(g2, container, lon);
 		}
+
 
 	}
 

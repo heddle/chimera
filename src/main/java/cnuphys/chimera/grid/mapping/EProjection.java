@@ -6,7 +6,7 @@ import cnuphys.bCNU.component.EnumComboBox;
 import cnuphys.chimera.frame.Chimera;
 
 public enum EProjection {
-	MOLLWEIDE, MERCATOR, ORTHOGRAPHIC;
+	MOLLWEIDE, MERCATOR, ORTHOGRAPHIC, XY;
 
 	/**
 	 * A map for the names of the projections
@@ -17,6 +17,7 @@ public enum EProjection {
 		names.put(MOLLWEIDE, "Mollweide");
 		names.put(MERCATOR, "Mercator");
 		names.put(ORTHOGRAPHIC, "Orthographic");
+        names.put(XY, "XY");
 	}
 
 	/**
@@ -77,9 +78,11 @@ public enum EProjection {
 		case MOLLWEIDE:
 			return new MollweideProjection(radius);
 		case MERCATOR:
-			return new MercatorProjection(radius);
+			return new MercatorProjection();
 		case ORTHOGRAPHIC:
 			return new OrthographicProjection(radius);
+		case XY:
+			return new XYProjection();
 		}
        return null;
 

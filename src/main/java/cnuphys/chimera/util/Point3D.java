@@ -1,5 +1,10 @@
 package cnuphys.chimera.util;
 
+/**
+ * A class to represent a 3D point in space.
+ * Also used to represent a 3D vector.
+ */
+ 
 import java.io.Serializable;
 
 public class Point3D implements Serializable {
@@ -40,6 +45,14 @@ public class Point3D implements Serializable {
             this.y = y;
             this.z = z;
         }
+        
+        /**
+         * The length of the vector from the origin to this point.
+         * @return The length of the vector.
+         */
+        public double length() {
+            return Math.sqrt(x * x + y * y + z * z);
+        }
 
         @Override
         public String toString() {
@@ -59,27 +72,87 @@ public class Point3D implements Serializable {
                    java.lang.Double.compare(y, other.y) == 0 &&
                    java.lang.Double.compare(z, other.z) == 0;
         }
+        
+        /**
+         * The dot product of two vectors.
+         * @param a one vector
+         * @param b the other vector
+         * @return  The dot product.
+         */
+		public static double dotProduct(Double a, Double b) {
+			return a.x * b.x + a.y * b.y + a.z * b.z;
+		}
+		
+		/**
+		 * The dot product of this vector with another
+		 * @param other the other vector
+		 * @return The dot product.
+		 */
+		public double dot(Double other) {
+			return dotProduct(this, other);
+        }
+		
+		/**
+		 * The cross product
+		 * @param a one vector
+		 * @param b the other vector
+		 * @param result the result vector
+		 */
+		public static void crossProduct(Double a, Double b, Double result) {
+			result.x = a.y * b.z - a.z * b.y;
+            result.y = a.z * b.x - a.x * b.z;
+            result.z = a.x * b.y - a.y * b.x;
+		}
+		
+		/**
+		 * The cross product of this vector with another
+		 * 
+		 * @param b      the other vector
+		 * @param result the result vector
+		 */
+		public void cross(Double b, Double result) {
+			crossProduct(this, b, result);
+		}
+		
+	    /**
+	     * Subtracts vector b from vector a and stores the result in 'result'.
+	     *
+	     * @param a      The minuend vector.
+	     * @param b      The subtrahend vector.
+	     * @param result The result vector (a - b).
+	     */
+	    public static void subtract(Point3D.Double a, Point3D.Double b, Point3D.Double result) {
+	        result.x = a.x - b.x;
+	        result.y = a.y - b.y;
+	        result.z = a.z - b.z;
+	    }
+	    
+		/**
+		 * Subtracts vector b from this vector and stores the result in 'result'.
+		 *
+		 * @param b      The subtrahend vector.
+		 * @param result The result vector (this - b).
+		 */
+	    public void minus(Point3D.Double b, Point3D.Double result) {
+	    	            subtract(this, b, result);
+	    }
+
+		/**
+		 * Adds vector b to vector a and stores the result in 'result'.
+		 *
+		 * @param a      The first vector.
+		 * @param b      The second vector.
+		 * @param result The result vector (a + b).
+		 */
+		public void add(Point3D.Double b, Point3D.Double result) {
+            result.x = x + b.x;
+            result.y = y + b.y;
+            result.z = z + b.z;
+		}
 
         @Override
         public int hashCode() {
             return java.util.Objects.hash(x, y, z);
         }
-    }
-
-    // Test the Point3D.Double class
-    public static void main(String[] args) {
-        Point3D.Double point = new Point3D.Double(1.0, 2.0, 3.0);
-        System.out.println("Initial Point: " + point);
-
-        point.setLocation(4.0, 5.0, 6.0);
-        System.out.println("Updated Point: " + point);
-
-        Point3D.Double anotherPoint = new Point3D.Double(4.0, 5.0, 6.0);
-        System.out.println("Points Equal: " + point.equals(anotherPoint));
-
-        // Directly access fields
-        System.out.println("Access x directly: " + point.x);
-        System.out.println("Access y directly: " + point.y);
-        System.out.println("Access z directly: " + point.z);
     }
 }

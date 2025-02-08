@@ -2,205 +2,151 @@ package cnuphys.chimera.grid;
 
 import cnuphys.chimera.util.Point3D;
 
+/**
+ * Represents a Cartesian grid defined by 1D grids in x, y, and z directions,
+ * along with an offset for each coordinate.
+ */
 public class CartesianGrid {
-    private Grid1D xGrid;
-    private Grid1D yGrid;
-    private Grid1D zGrid;
-    public double xo, yo, zo; // Offsets for x, y, and z
+    private final Grid1D xGrid;
+    private final Grid1D yGrid;
+    private final Grid1D zGrid;
+    private final double xOffset, yOffset, zOffset;
 
-    // Constructor to initialize x, y, z grids with offsets
-    public CartesianGrid(double xMin, double xMax, int numX,
-                         double yMin, double yMax, int numY,
-                         double zMin, double zMax, int numZ,
-                         double xo, double yo, double zo) {
-        xGrid = new Grid1D(xMin, xMax, numX);
-        yGrid = new Grid1D(yMin, yMax, numY);
-        zGrid = new Grid1D(zMin, zMax, numZ);
+    /**
+     * Constructs a CartesianGrid.
+     *
+     * @param xArray an array of x grid points (must not be empty)
+     * @param yArray an array of y grid points (must not be empty)
+     * @param zArray an array of z grid points (must not be empty)
+     * @param xo     the x-offset from the global origin
+     * @param yo     the y-offset from the global origin
+     * @param zo     the z-offset from the global origin
+     * @throws IllegalArgumentException if any input array is empty
+     */
+    public CartesianGrid(double[] xArray, double[] yArray, double[] zArray, double xo, double yo, double zo) {
+        if (xArray == null || xArray.length == 0) {
+            throw new IllegalArgumentException("xArray must not be empty.");
+        }
+        if (yArray == null || yArray.length == 0) {
+            throw new IllegalArgumentException("yArray must not be empty.");
+        }
+        if (zArray == null || zArray.length == 0) {
+            throw new IllegalArgumentException("zArray must not be empty.");
+        }
 
-        this.xo = xo;
-        this.yo = yo;
-        this.zo = zo;
+        this.xGrid = new Grid1D(xArray);
+        this.yGrid = new Grid1D(yArray);
+        this.zGrid = new Grid1D(zArray);
+        this.xOffset = xo;
+        this.yOffset = yo;
+        this.zOffset = zo;
     }
 
     /**
-     * Copy constructor to create a deep copy of the source CartesianGrid
-     * @param source the source CartesianGrid to copy
+     * Copy constructor.
+     *
+     * @param other the CartesianGrid instance to copy.
      */
-	public CartesianGrid(CartesianGrid source) {
-        xGrid = new Grid1D(source.xGrid);
-        yGrid = new Grid1D(source.yGrid);
-        zGrid = new Grid1D(source.zGrid);
-        xo = source.xo;
-        yo = source.yo;
-        zo = source.zo;
+    public CartesianGrid(CartesianGrid other) {
+        this.xGrid = new Grid1D(other.xGrid);
+        this.yGrid = new Grid1D(other.yGrid);
+        this.zGrid = new Grid1D(other.zGrid);
+        this.xOffset = other.xOffset;
+        this.yOffset = other.yOffset;
+        this.zOffset = other.zOffset;
     }
 
-    // Convenience methods for the X grid
-    public void setXGrid(double vmin, double vmax, int num) {
-    	xGrid.setGrid(vmin, vmax, num);
-    }
+    // ------------------ Accessors for the Grid1D objects ------------------
 
-	public void setXOffset(double xo) {
-		this.xo = xo;
-	}
+    public Grid1D getXGrid() { return xGrid; }
+    public Grid1D getYGrid() { return yGrid; }
+    public Grid1D getZGrid() { return zGrid; }
 
-	public double getXOffset() {
-		return xo;
-	}
+    // ------------------ Accessors for the Offsets ------------------
 
-    public double getXMin() {
-        return xGrid.getVmin();
-    }
+    public double getXOffset() { return xOffset; }
+    public double getYOffset() { return yOffset; }
+    public double getZOffset() { return zOffset; }
 
-    public double getXMax() {
-        return xGrid.getVmax();
-    }
+    // ------------------ Convenience Methods ------------------
 
-	public void setXMax(double xmax) {
-		xGrid.setMax(xmax);
-	}
+    public double getXMin() { return xGrid.min() + xOffset; }
+    public double getXMax() { return xGrid.max() + xOffset; }
+    public int getNumX() { return xGrid.numPoints(); }
 
-	public void setXMin(double xmin) {
-		xGrid.setMin(xmin);
-	}
+    public double getYMin() { return yGrid.min() + yOffset; }
+    public double getYMax() { return yGrid.max() + yOffset; }
+    public int getNumY() { return yGrid.numPoints(); }
 
-    public int getNumX() {
-        return xGrid.getNum();
-    }
+    public double getZMin() { return zGrid.min() + zOffset; }
+    public double getZMax() { return zGrid.max() + zOffset; }
+    public int getNumZ() { return zGrid.numPoints(); }
 
-    public double getXDel() {
-        return xGrid.getSpacing();
-    }
+    // ------------------ Index and Coordinate Methods ------------------
 
-    // Convenience methods for the Y grid
-    public void setYGrid(double vmin, double vmax, int num) {
-    	yGrid.setGrid(vmin, vmax, num);
-    }
-
-	public void setYOffset(double yo) {
-		this.yo = yo;
-	}
-
-	public double getYOffset() {
-		return yo;
-	}
-
-    public double getYMin() {
-        return yGrid.getVmin();
-    }
-
-    public double getYMax() {
-        return yGrid.getVmax();
-    }
-
-	public void setYMax(double ymax) {
-		yGrid.setMax(ymax);
-	}
-
-	public void setYMin(double ymin) {
-		yGrid.setMin(ymin);
-	}
-    public int getNumY() {
-        return yGrid.getNum();
-    }
-
-    public double getYDel() {
-        return yGrid.getSpacing();
-    }
-
-    // Convenience methods for the Z grid
-    public void setZGrid(double vmin, double vmax, int num) {
-    	zGrid.setGrid(vmin, vmax, num);
-    }
-
-	public void setZOffset(double zo) {
-		this.zo = zo;
-	}
-
-	public double getZOffset() {
-		return zo;
-	}
-
-    public double getZMin() {
-        return zGrid.getVmin();
-    }
-
-    public double getZMax() {
-        return zGrid.getVmax();
-    }
-
-	public void setZMax(double zmax) {
-		zGrid.setMax(zmax);
-	}
-
-	public void setZMin(double zmin) {
-		zGrid.setMin(zmin);
-	}
-    public int getNumZ() {
-        return zGrid.getNum();
-    }
-
-    public double getZDel() {
-        return zGrid.getSpacing();
-    }
-
-	public void setNumX(int numX) {
-		xGrid.setNum(numX);
-	}
-
-	public void setNumY(int numY) {
-		yGrid.setNum(numY);
-	}
-
-	public void setNumZ(int numZ) {
-		zGrid.setNum(numZ);
-	}
-
-    // Get indices for a Point3D.Double
-    public void getIndices(Point3D.Double point, int[] indices) {
+    /**
+     * Given global coordinates (x, y, z), locates the corresponding indices in the grids.
+     *
+     * @param x       the global x-coordinate.
+     * @param y       the global y-coordinate.
+     * @param z       the global z-coordinate.
+     * @param indices an int array of length at least 3 in which the method stores the x, y, and z
+     *                interval indices. If a coordinate is out of range, the corresponding index will be -1.
+     * @return the same indices array passed in.
+     * @throws IllegalArgumentException if the indices array is null or has length less than 3.
+     */
+    public int[] getIndices(double x, double y, double z, int[] indices) {
         if (indices == null || indices.length < 3) {
-            throw new IllegalArgumentException("Indices array must have at least three elements.");
+            throw new IllegalArgumentException("indices array must have at least length 3.");
         }
-        getIndices(point.x, point.y, point.z, indices);
+
+        // Initialize indices as -1 in case of out-of-range values
+        indices[0] = -1;
+        indices[1] = -1;
+        indices[2] = -1;
+
+        // Convert global coordinates to local grid coordinates and locate intervals
+        indices[0] = xGrid.locateInterval(x - xOffset);
+        indices[1] = yGrid.locateInterval(y - yOffset);
+        indices[2] = zGrid.locateInterval(z - zOffset);
+        return indices;
     }
 
-    // Get indices for explicit coordinates
-    public void getIndices(double x, double y, double z, int[] indices) {
-        if (indices == null || indices.length < 3) {
-            throw new IllegalArgumentException("Indices array must have at least three elements.");
-        }
-
-        indices[0] = xGrid.getIndex(x - xo); // X index
-        indices[1] = yGrid.getIndex(y - yo); // Y index
-        indices[2] = zGrid.getIndex(z - zo); // Z index
-
-        for (int index : indices) {
-            if (index == -1) {
-                throw new IllegalArgumentException("Point is outside the grid bounds.");
-            }
-        }
+    /**
+     * Given global coordinates (x, y, z) in a Point3D object, locates the corresponding indices in the
+     * grids.
+     *
+     * @param point   the global coordinates as a Point3D.
+     * @param indices an array of length at least 3 to store the indices.
+     * @return the indices array with updated values.
+     */
+    public int[] getIndices(Point3D.Double point, int[] indices) {
+        return getIndices(point.x, point.y, point.z, indices);
     }
 
-    // Get global coordinates from grid indices
+    /**
+     * Returns the global coordinates corresponding to the specified indices.
+     *
+     * @param ix the x-index.
+     * @param iy the y-index.
+     * @param iz the z-index.
+     * @return a Point3D.Double holding the global (x, y, z) coordinates.
+     * @throws IndexOutOfBoundsException if any index is out of range.
+     */
     public Point3D.Double getCoordinates(int ix, int iy, int iz) {
-        if (ix < 0 || ix >= xGrid.getNum() ||
-            iy < 0 || iy >= yGrid.getNum() ||
-            iz < 0 || iz >= zGrid.getNum()) {
-            throw new IllegalArgumentException("Indices are out of bounds.");
+        if (ix < 0 || ix >= getNumX()) {
+            throw new IndexOutOfBoundsException("X index " + ix + " is out of bounds.");
+        }
+        if (iy < 0 || iy >= getNumY()) {
+            throw new IndexOutOfBoundsException("Y index " + iy + " is out of bounds.");
+        }
+        if (iz < 0 || iz >= getNumZ()) {
+            throw new IndexOutOfBoundsException("Z index " + iz + " is out of bounds.");
         }
 
-        double x = xGrid.getVmin() + ix * xGrid.getSpacing() + xo;
-        double y = yGrid.getVmin() + iy * yGrid.getSpacing() + yo;
-        double z = zGrid.getVmin() + iz * zGrid.getSpacing() + zo;
-
-        return new Point3D.Double(x, y, z);
-    }
-
-    @Override
-    public String toString() {
-        return String.format("CartesianGrid[xGrid=%s, yGrid=%s, zGrid=%s, offsets=(%.4f, %.4f, %.4f)]",
-                             xGrid, yGrid, zGrid, xo, yo, zo);
+        double xVal = xGrid.valueAt(ix) + xOffset;
+        double yVal = yGrid.valueAt(iy) + yOffset;
+        double zVal = zGrid.valueAt(iz) + zOffset;
+        return new Point3D.Double(xVal, yVal, zVal);
     }
 }
-
-

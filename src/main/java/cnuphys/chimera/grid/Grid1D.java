@@ -1,148 +1,108 @@
 package cnuphys.chimera.grid;
+
+import java.util.Arrays;
+
 public class Grid1D {
-    private double vmin;  // Minimum value of the grid
-    private double vmax;  // Maximum value of the grid
-    private int num;      // Number of points in the grid
-    private double del;   // Spacing between grid points
+    private final double[] pts;
 
     /**
-     * Constructor to initialize the Grid1D with specified parameters.
-     *
-     * @param vmin Minimum value of the grid.
-     * @param vmax Maximum value of the grid.
-     * @param num Number of points in the grid (including endpoints).
-     * @throws IllegalArgumentException if num is less than 2 or if vmin >= vmax.
+     * Constructor: Takes an array of grid points, sorts them in ascending order.
+     * @param points The array of grid points (not necessarily uniformly spaced).
+     * @throws IllegalArgumentException if points array is empty.
      */
-    public Grid1D(double vmin, double vmax, int num) {
-    	setGrid(vmin, vmax, num);
-    }
-
-    public void setGrid(double vmin, double vmax, int num) {
-		if (num < 2) {
-			throw new IllegalArgumentException("num must be at least 2.");
-		}
-		if (vmin >= vmax) {
-			throw new IllegalArgumentException("vmin must be less than vmax.");
-		}
-		this.vmin = vmin;
-		this.vmax = vmax;
-		this.num = num;
-        computeDel();
-    }
-
-    /**
-     * Copy constructor to create a deep copy of the source Grid1D.
-     * @param source The Grid1D ro copy
-     */
-	public Grid1D(Grid1D source) {
-		this(source.vmin, source.vmax, source.num);
-	}
-
-	/**
-	 * Set the minimum value of the grid.
-	 *
-	 * @param vmin The minimum value to set.
-	 */
-	public void setMin(double vmin) {
-		this.vmin = vmin;
-		computeDel();
-	}
-
-	/**
-     * Set the maximum value of the grid.
-     *
-     * @param vmax The maximum value to set.
-     */
-	public void setMax(double vmax) {
-		this.vmax = vmax;
-		computeDel();
-	}
-
-	/**
-	 * Compute the spacing between grid points.
-	 */
-    private void computeDel() {
-    	this.del = (vmax - vmin) / (num - 1);
-    }
-
-    /**
-     * Get the index of the grid segment such that val lies between grid points at index n and n+1.
-     *
-     * @param val The value for which the index is needed.
-     * @return The index (0 to num-2) if val is within the grid bounds; -1 otherwise.
-     */
-    public int getIndex(double val) {
-        if (val < vmin || val > vmax) {
-            return -1;  // Value is outside the grid
+    public Grid1D(double[] points) {
+        if (points == null || points.length == 0) {
+            throw new IllegalArgumentException("Grid1D cannot be initialized with an empty array.");
         }
-        int index = (int) ((val - vmin) / del);
-        if (index >= num - 1) {
-            return num - 2;  // Handle edge case for max value
+        // Copy the input array to avoid side-effects.
+        pts = Arrays.copyOf(points, points.length);
+        Arrays.sort(pts);
+    }
+
+    /**
+     * Copy constructor.
+     * @param other The Grid1D instance to copy.
+     */
+    public Grid1D(Grid1D other) {
+        this.pts = Arrays.copyOf(other.pts, other.pts.length);
+    }
+
+    /**
+     * Returns the minimum grid point value.
+     * @return The smallest value in the grid.
+     */
+    public double min() {
+        return pts[0];
+    }
+
+    /**
+     * Returns the maximum grid point value.
+     * @return The largest value in the grid.
+     */
+    public double max() {
+        return pts[pts.length - 1];
+    }
+
+    /**
+     * Finds the index n such that the provided value lies between pts[n] and pts[n+1].
+     * If the value is out of range, returns -1.
+     * Uses binary search for efficiency.
+     *
+     * @param value The value to locate.
+     * @return The index n such that pts[n] <= value < pts[n+1], or -1 if out of range.
+     */
+    public int locateInterval(double value) {
+        // Handle cases where the value is out of range
+        if (value < pts[0] || value > pts[pts.length - 1]) {
+            return -1;
         }
-        return index;
+
+        int index = Arrays.binarySearch(pts, value);
+
+        if (index >= 0) {
+            // If it's the last element, no interval exists
+            return (index == pts.length - 1) ? pts.length - 2 : index;
+        }
+
+        // If not found, determine the insertion point
+        int insertionPoint = -index - 1;
+
+        // If the insertion point is at the beginning, it's out of range
+        if (insertionPoint == 0) {
+            return -1;
+        }
+
+        // The interval is between insertionPoint - 1 and insertionPoint
+        return insertionPoint - 1;
     }
 
     /**
-     * Get the spacing (delta) of the grid.
-     *
-     * @return The spacing between grid points.
+     * Returns the grid point at the specified index.
+     * @param index The index of the grid point.
+     * @return The grid point value.
+     * @throws IndexOutOfBoundsException if the index is out of range.
      */
-    public double getSpacing() {
-        return del;
+    public double valueAt(int index) {
+        if (index < 0 || index >= pts.length) {
+            throw new IndexOutOfBoundsException("Index " + index + " is out of bounds for Grid1D.");
+        }
+        return pts[index];
     }
-
-    /**
-     * Get the minimum value of the grid.
-     *
-     * @return The minimum value of the grid.
-     */
-    public double getVmin() {
-        return vmin;
-    }
-
-    /**
-     * Get the maximum value of the grid.
-     *
-     * @return The maximum value of the grid.
-     */
-    public double getVmax() {
-        return vmax;
-    }
-
-    /**
-     * Get the number of points in the grid.
-     *
-     * @return The number of points in the grid.
-     */
-    public int getNum() {
-        return num;
-    }
-
-    /**
-     * Set the number of points in the grid.
-     * @param num The number of points to set.
-     */
-	public void setNum(int num) {
-		if (num < 2) {
-			throw new IllegalArgumentException("num must be at least 2.");
-		}
-		this.num = num;
-		computeDel();
+    
+	/**
+	 * Returns a copy of the grid points array.
+	 * 
+	 * @return A copy of the grid points array.
+	 */
+	public double[] getPoints() {
+		return Arrays.copyOf(pts, pts.length);
 	}
 
-    // Test the class with a simple example
-    public static void main(String[] args) {
-        Grid1D grid = new Grid1D(0.0, 10.0, 11);
-        System.out.println("Spacing (del): " + grid.getSpacing());
-        System.out.println("Index for 0.5: " + grid.getIndex(0.5));  // Should be 0
-        System.out.println("Index for 5.5: " + grid.getIndex(5.5));  // Should be 5
-        System.out.println("Index for 9.9: " + grid.getIndex(9.9));  // Should be 9
-        System.out.println("Index for 10.0: " + grid.getIndex(10.0)); // Should be 9 (last segment)
-        System.out.println("Index for 8.0001: " + grid.getIndex(8.0001)); // Should be 8
-        System.out.println("Index for 7.999: " + grid.getIndex(7.999)); // Should be 7
-
-
-        System.out.println("Index for -1.0: " + grid.getIndex(-1.0)); // Should be -1 (out of bounds)
+    /**
+     * Returns the total number of grid points.
+     * @return The number of grid points.
+     */
+    public int numPoints() {
+        return pts.length;
     }
 }
-

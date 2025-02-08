@@ -12,10 +12,11 @@ import cnuphys.chimera.grid.ChimeraGrid;
 import cnuphys.chimera.grid.Grid1D;
 import cnuphys.chimera.grid.SphericalGrid;
 
-public class MercatorProjection implements IMapProjection {
+public class XYProjection implements IMapProjection {
 
     private static final double MAX_LAT = Math.toRadians(89); // Avoid poles (85° limit)
-    
+
+
     @Override
     public void latLonToXY(Point2D.Double latLon, Point2D.Double xy) {
         double lon = latLon.x; // Longitude in radians
@@ -26,7 +27,7 @@ public class MercatorProjection implements IMapProjection {
 
         // Mercator projection formula
         xy.x = lon;
-        xy.y = Math.log(Math.tan((Math.PI / 4) + (lat / 2)));
+        xy.y = lat;
     }
 
     @Override
@@ -36,7 +37,7 @@ public class MercatorProjection implements IMapProjection {
 
         // Inverse Mercator projection formula
         latLon.x = x; // Longitude
-        latLon.y = 2 * Math.atan(Math.exp(y)) - Math.PI / 2; // Latitude
+        latLon.y = y; // Latitude
     }
 
     @Override
@@ -78,7 +79,7 @@ public class MercatorProjection implements IMapProjection {
     @Override
     public boolean isPointOnMap(Point2D.Double xy) {
         // Check if the point's Mercator latitude is within valid range
-        double lat = 2 * Math.atan(Math.exp(xy.y)) - Math.PI / 2;
+        double lat = xy.y;
         return (lat >= -MAX_LAT && lat <= MAX_LAT && xy.x >= -Math.PI && xy.x <= Math.PI);
     }
 

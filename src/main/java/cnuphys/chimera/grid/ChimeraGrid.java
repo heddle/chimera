@@ -18,7 +18,7 @@ public class ChimeraGrid {
     private final CartesianGrid cartesianGrid;
     private final SphericalGrid sphericalGrid;
     
-    private List<Threeplet> intersectingCells = new ArrayList<>();
+    private List<Cell> intersectingCells = new ArrayList<>();
 
     public ChimeraGrid(CartesianGrid cartesianGrid, SphericalGrid sphericalGrid) {
         this.cartesianGrid = new CartesianGrid(cartesianGrid); 
@@ -39,7 +39,7 @@ public class ChimeraGrid {
 		return sphericalGrid;
 	}
 
-	public List<Threeplet> getIntersectingCells() {
+	public List<Cell> getIntersectingCells() {
 		return intersectingCells;
 	}
 
@@ -56,8 +56,8 @@ public class ChimeraGrid {
     public void findIntersectingCells() {
         reset();
 
-        double sphereRadius = sphericalGrid.getRadius();
-        double rSquared = sphereRadius * sphereRadius;
+        double radius = sphericalGrid.getRadius();
+        double rSquared = radius * radius;
 
         int nx = cartesianGrid.getNumX() - 1;
         int ny = cartesianGrid.getNumY() - 1;
@@ -91,12 +91,12 @@ public class ChimeraGrid {
                     //if no traditional intersection, must do the kiss test!
                     //for cells with no inside points
                     if (hasInside && hasOutside) {
-                        intersectingCells.add(new Threeplet(ix, iy, iz, cornerBits));
+                        intersectingCells.add(new Cell(cartesianGrid, ix, iy, iz, cornerBits, radius));
                     }
                     else if (!hasInside) {
-						int kissFace = kissTest2(cell, sphereRadius);
+						int kissFace = kissTest(cell, radius);
 						if (kissFace >= 0) {
-							intersectingCells.add(new Threeplet(ix, iy, iz, cornerBits));
+							intersectingCells.add(new Cell(cartesianGrid, ix, iy, iz, cornerBits, radius));
 						}
 					}
 
@@ -104,11 +104,11 @@ public class ChimeraGrid {
             }// y
         } //z
         System.out.println("Intersecting cells count: " + intersectingCells.size());
-        Threeplet.report(intersectingCells);
+        Cell.report(intersectingCells);
     }
 
     //do the hideous kiss test (this is the test devised by chatGPT)
-    private int kissTest(double[][] corners, double sphereRadius) {
+    private int kissTestGPT(double[][] corners, double sphereRadius) {
     	
     	//get the closest face
     	int closestFace = -1;
@@ -137,7 +137,7 @@ public class ChimeraGrid {
     }
     
     //do the hideous kiss test (this is the test used previously)
-    private int kissTest2(double[][] corners, double sphereRadius) {
+    private int kissTest(double[][] corners, double sphereRadius) {
 
     	//get the closest face
     	int closestFace = -1;

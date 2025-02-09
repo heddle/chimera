@@ -32,6 +32,15 @@ public class Point3D implements Serializable {
             this.y = y;
             this.z = z;
         }
+        
+		/**
+		 * Constructs a Point3D.Double with the specified coordinates.
+		 *
+		 * @param xyz The x, y, z coordinates.
+		 */
+        public Double(double[] xyz) {
+        	this(xyz[0], xyz[1], xyz[2]);
+        }
 
         /**
          * Sets the location of the point.

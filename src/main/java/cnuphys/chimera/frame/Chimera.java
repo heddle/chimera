@@ -19,6 +19,7 @@ import cnuphys.bCNU.menu.MenuManager;
 import cnuphys.bCNU.util.Environment;
 import cnuphys.bCNU.util.FileUtilities;
 import cnuphys.bCNU.util.PropertySupport;
+import cnuphys.chimera.grid.CellTablePanel;
 import cnuphys.chimera.grid.ChimeraGrid;
 import cnuphys.chimera.grid.Fiveplet;
 import cnuphys.chimera.grid.TestGrid;
@@ -143,16 +144,28 @@ public class Chimera extends BaseMDIApplication {
 		JMenu menu = new JMenu("Intersections");
 
 		JMenuItem item = new JMenuItem("Find Intersecting Cells");
-		item.addActionListener(e -> handleIntersectingCells());
+		final JMenuItem tableItem = new JMenuItem("Cell Table");
+
+		item.addActionListener(e -> handleIntersectingCells(tableItem));
+		
+		tableItem.addActionListener(e -> handleCellTabel());
+		tableItem.setEnabled(false);
+		
 		menu.add(item);
+        menu.add(tableItem);
 		getJMenuBar().add(menu);
 
 	}
 
 	//handle intersecting cells
-	private void handleIntersectingCells() {
+	private void handleIntersectingCells(JMenuItem tableItem) {
 		_chimeraGrid.findIntersectingCells();
+		tableItem.setEnabled(true);
 
+	}
+	
+	private void handleCellTabel() {
+		CellTablePanel.showDialog(_chimeraGrid.getIntersectingCells());
 	}
 
 	// add to the options menu

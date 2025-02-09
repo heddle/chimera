@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cnuphys.bCNU.util.Bits;
+import cnuphys.chimera.util.Point3D;
 
 public class GridSupport {
 	
@@ -318,5 +319,19 @@ public class GridSupport {
 
         return corners;
     }
+    
+    /**
+     * Get the Cartesian coordinates of the corner of the cell at the given indices.
+     * @param cartesianGrid the Cartesian grid
+     * @param ix the index of the smaller x coordinate
+     * @param iy the index of the smaller y coordinate
+     * @param iz the index of the smaller z coordinate
+     * @param corner the corner index [0, 7] for the corners of a cube. This assumes the canonical numbering
+     * @return the Cartesian coordinates of the corner of the cell at the given indices.
+     */
+	public static double[] getCellCorner(CartesianGrid cartesianGrid, int ix, int iy, int iz, int corner) {
+		double[][] corners = getCellCorners(cartesianGrid, ix, iy, iz);
+		return corners[corner];
+	}
 
 }

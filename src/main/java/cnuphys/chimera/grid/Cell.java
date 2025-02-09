@@ -4,12 +4,12 @@ import java.util.List;
 import java.util.Objects;
 
 import cnuphys.bCNU.util.Bits;
+import cnuphys.chimera.util.Point3D;
 
 /**
- * A class to represent a threeplet of integers. Used for cells that passed the
- * intersection test Used to hold Cartesian cell indices.
+ * A class to represent a a Cartesian grid cell that intersects a sphere.
  */
-public class Threeplet {
+public class Cell {
 
 	// the possible intersection types
 	public static final int cornerIn = 0;
@@ -23,23 +23,31 @@ public class Threeplet {
 	public static final int singleEdge = 8; // probably doesn't happen
 	public static final int kiss = 9;
 	
-	//coresponding to the intersection types
+	//corresponding to the intersection types
 	public static final String[] intersectionTypes = {
             "cornerIn", "cornerOut", "doubleCornerIn", "doubleCorner",
             "faceCut", "cornerPull", "cornerPush", "skewCut", "singleEdge", "kiss"};
 
+	// the indices on the Cartesian grid
 	public int nx;
 	public int ny;
 	public int nz;
 
+	// the corners that are inside the sphere (bitwise)
 	private int insideCorners;
 
+	// the edges that intersect the sphere
 	private int[] edgeIntersections;
+	private Edge[] edges;
 
+	//The intersection type
 	private int intersectionType = -1;
+	
+	//The Cartesian grid
+	private CartesianGrid grid;
 
 	/**
-	 * Constructor for the Threeplet class.
+	 * Constructor for the Cell class.
 	 *
 	 * @param nx        index on the x grid.
 	 * @param ny        index on the y grid.
@@ -47,15 +55,42 @@ public class Threeplet {
 	 * @param inCorners the bitwise indices of the corners of the cell that are
 	 *                  inside the sphere
 	 */
-	public Threeplet(int nx, int ny, int nz, int inCorners) {
+	public Cell(CartesianGrid grid, int nx, int ny, int nz, int inCorners, double radius) {
+		this.grid = grid;
 		this.nx = nx;
 		this.ny = ny;
 		this.nz = nz;
 		insideCorners = inCorners;
 		edgeIntersections = GridSupport.findIntersectingEdges(inCorners);
 		intersectionType = getIntersectionType();
+		getEdges(radius);
+	}
+	
+	private void getEdges(double radius) {
+		if (edgeIntersections == null) {
+			return;
+		}
+		
+		edges = new Edge[edgeIntersections.length];
+		
+		int i = 0;
+		for (int edgeIndex : edgeIntersections) {
+			//get the end points
+			int[] corners = GridSupport.getCornersOfEdges(edgeIndex);
+			
+			Point3D.Double startCorner = new Point3D.Double(GridSupport.getCellCorner(grid, nx, ny, nz, corners[0]));
+			Point3D.Double endCorner = new Point3D.Double(GridSupport.getCellCorner(grid, nx, ny, nz, corners[1]));
+			
+			edges[i] = new Edge(startCorner, endCorner, radius);
+			i++;
+		}
 	}
 
+	/**
+	 * Get the intersection type
+	 * 
+	 * @return the intersection type
+	 */
 	public int getIntersectionType() {
 		
 		if (intersectionType < 0) {
@@ -169,7 +204,7 @@ public class Threeplet {
 			return true;
 		if (obj == null || getClass() != obj.getClass())
 			return false;
-		Threeplet that = (Threeplet) obj;
+		Cell that = (Cell) obj;
 		return nx == that.nx && ny == that.ny && nz == that.nz;
 	}
 
@@ -188,11 +223,11 @@ public class Threeplet {
 	 * 
 	 * @param list the list to report
 	 */
-	public static void report(List<Threeplet> list) {
+	public static void report(List<Cell> list) {
 		System.out.println("\nIntersecting Cells Overview");
 		int[] counts = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-		for (Threeplet t : list) {
+		for (Cell t : list) {
 			counts[t.intersectionType]++;
 		}
 

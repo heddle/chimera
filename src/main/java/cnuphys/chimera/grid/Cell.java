@@ -24,7 +24,7 @@ public class Cell {
 	public static final int kiss = 9;
 
 	// corresponding to the intersection types
-	public static final String[] intersectionTypes = { "cornerIn", "cornerOut", "doubleCornerIn", "doubleCorner",
+	public static final String[] intersectionTypes = { "cornerIn", "cornerOut", "doubleCornerIn", "doubleCornerOut",
 			"faceCut", "cornerPull", "cornerPush", "skewCut", "singleEdge", "kiss" };
 
 	// the indices on the Cartesian grid
@@ -44,6 +44,8 @@ public class Cell {
 
 	// The Cartesian grid
 	private CartesianGrid grid;
+	
+	private double radius;
 
 	/**
 	 * Constructor for the Cell class.
@@ -59,12 +61,14 @@ public class Cell {
 		this.nx = nx;
 		this.ny = ny;
 		this.nz = nz;
+		this.radius = radius;
 		insideCorners = inCorners;
 		edgeIntersections = GridSupport.findIntersectingEdges(inCorners);
 		intersectionType = getIntersectionType();
 		makeEdges(radius);
 	}
 
+	// make the edges that intersect the sphere
 	private void makeEdges(double radius) {
 		if (edgeIntersections == null) {
 			return;
@@ -96,6 +100,15 @@ public class Cell {
 	
 	public CartesianGrid getCartesianGrid() {
 		return grid;
+	}
+	
+	
+	/**
+	 * Get the radius of the sphere
+	 * @return the radius of the sphere
+	 */
+	public double getRadius() {
+		return radius;
 	}
 
 	/**

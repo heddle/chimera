@@ -22,11 +22,10 @@ public class Cell {
 	public static final int skewCut = 7;
 	public static final int singleEdge = 8; // probably doesn't happen
 	public static final int kiss = 9;
-	
-	//corresponding to the intersection types
-	public static final String[] intersectionTypes = {
-            "cornerIn", "cornerOut", "doubleCornerIn", "doubleCorner",
-            "faceCut", "cornerPull", "cornerPush", "skewCut", "singleEdge", "kiss"};
+
+	// corresponding to the intersection types
+	public static final String[] intersectionTypes = { "cornerIn", "cornerOut", "doubleCornerIn", "doubleCorner",
+			"faceCut", "cornerPull", "cornerPush", "skewCut", "singleEdge", "kiss" };
 
 	// the indices on the Cartesian grid
 	public int nx;
@@ -40,10 +39,10 @@ public class Cell {
 	private int[] edgeIntersections;
 	private Edge[] edges;
 
-	//The intersection type
+	// The intersection type
 	private int intersectionType = -1;
-	
-	//The Cartesian grid
+
+	// The Cartesian grid
 	private CartesianGrid grid;
 
 	/**
@@ -63,27 +62,40 @@ public class Cell {
 		insideCorners = inCorners;
 		edgeIntersections = GridSupport.findIntersectingEdges(inCorners);
 		intersectionType = getIntersectionType();
-		getEdges(radius);
+		makeEdges(radius);
 	}
-	
-	private void getEdges(double radius) {
+
+	private void makeEdges(double radius) {
 		if (edgeIntersections == null) {
 			return;
 		}
-		
+
 		edges = new Edge[edgeIntersections.length];
-		
+
 		int i = 0;
 		for (int edgeIndex : edgeIntersections) {
-			//get the end points
+			// get the end points
 			int[] corners = GridSupport.getCornersOfEdges(edgeIndex);
-			
+
 			Point3D.Double startCorner = new Point3D.Double(GridSupport.getCellCorner(grid, nx, ny, nz, corners[0]));
 			Point3D.Double endCorner = new Point3D.Double(GridSupport.getCellCorner(grid, nx, ny, nz, corners[1]));
-			
+
 			edges[i] = new Edge(startCorner, endCorner, radius);
 			i++;
 		}
+	}
+	
+	/**
+	 * Get the edges that intersect the sphere
+	 * 
+	 * @return the edges that intersect the sphere
+	 */
+	public Edge[] getEdges() {
+        return edges;
+	}
+	
+	public CartesianGrid getCartesianGrid() {
+		return grid;
 	}
 
 	/**
@@ -92,24 +104,22 @@ public class Cell {
 	 * @return the intersection type
 	 */
 	public int getIntersectionType() {
-		
+
 		if (intersectionType < 0) {
-			
+
 			int numInside = numInsideCorners();
-			
-			
-			
+
 			int numEdges = edgeIntersections.length;
 			if (numInside == 0 && numEdges == 0) {
 				return kiss;
 			}
-			
+
 			if (numInside == 1) {
 				if (numEdges == 3) {
 					return cornerIn;
 				}
 			}
-			
+
 			if (numInside == 2) {
 				if (numEdges == 4) {
 					return doubleCornerIn;
@@ -118,14 +128,14 @@ public class Cell {
 					return singleEdge;
 				}
 			}
-			
+
 			if (numInside == 3) {
 				if (numEdges == 5) {
 					return cornerPull;
 				}
 
 			}
-			
+
 			if (numInside == 4) {
 				if (numEdges == 4) {
 					return faceCut;
@@ -135,31 +145,40 @@ public class Cell {
 				}
 
 			}
-			
+
 			if (numInside == 5) {
 				if (numEdges == 5) {
-                    return cornerPush;
+					return cornerPush;
 				}
 			}
-			
+
 			if (numInside == 6) {
 				if (numEdges == 4) {
 					return doubleCornerOut;
 				}
 			}
-			
+
 			if (numInside == 7) {
 				if (numEdges == 3) {
 					return cornerOut;
 				}
 			}
-			
-			System.err.println("Unknown intersection type with " + numInside + " inside corners and " + numEdges + " edge intersections.");
+
+			System.err.println("Unknown intersection type with " + numInside + " inside corners and " + numEdges
+					+ " edge intersections.");
 			System.exit(-1);
 		}
-		
-		
+
 		return intersectionType;
+	}
+	
+	/**
+	 * Get the intersection type as a string
+	 * 
+	 * @return the intersection type as a string
+	 */
+	public String getIntersectionTypeString() {
+		return intersectionTypes[getIntersectionType()];
 	}
 
 	/**
@@ -217,6 +236,25 @@ public class Cell {
 	public String toString() {
 		return String.format("[nx = %d, ny = %d, nz = %d]", nx, ny, nz);
 	}
+	
+	/**
+	 * Get the center of the cell
+	 * 
+	 * @return the center of the cell
+	 */
+	public double[] getCenter() {
+		double[] center = new double[3];
+		double[][] corners = GridSupport.getCellCorners(grid, nx, ny, nz);
+		for (int i = 0; i < 8; i++) {
+			center[0] += corners[i][0];
+			center[1] += corners[i][1];
+			center[2] += corners[i][2];
+		}
+		center[0] /= 8.0;
+		center[1] /= 8.0;
+		center[2] /= 8.0;
+		return center;
+	}
 
 	/**
 	 * Report a list of Threeplets
@@ -225,7 +263,7 @@ public class Cell {
 	 */
 	public static void report(List<Cell> list) {
 		System.out.println("\nIntersecting Cells Overview");
-		int[] counts = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		int[] counts = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 		for (Cell t : list) {
 			counts[t.intersectionType]++;

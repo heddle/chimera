@@ -314,10 +314,10 @@ public class CellTablePanel extends JPanel {
 
         // Optionally, set up callbacks.
         cellTablePanel.setCellClickListener(cell -> {
-            System.out.println("Single-clicked on: " + cell);
+            ChimeraCell3D.displayCell(cell);
         });
         cellTablePanel.setCellDoubleClickListener(cell -> {
-            System.out.println("Double-clicked on: " + cell);
+  //          displayCell(cell);
         });
 
         // Create a modeless dialog.
@@ -336,18 +336,10 @@ public class CellTablePanel extends JPanel {
         dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
     }
+    
+    //display the cell
+	private static void displayCell(Cell cell) {
+		System.out.println("Cell clicked");
+	}
 
-    // For testing/demo purposes.
-    public static void main(String[] args) {
-        // Create some demo cells.
-        List<Cell> cellList = new ArrayList<>();
-        // NOTE: Replace 'null' for the grid and a dummy radius.
-        cellList.add(new Cell(null, 5, 2, 7, 0b00001111, 1.0));
-        cellList.add(new Cell(null, 3, 6, 2, 0b00101010, 1.0));
-        cellList.add(new Cell(null, 5, 2, 3, 0b11110000, 1.0));
-        cellList.add(new Cell(null, 3, 2, 9, 0b10101010, 1.0));
-        cellList.add(new Cell(null, 1, 8, 5, 0b01010101, 1.0));
-
-        SwingUtilities.invokeLater(() -> showDialog(cellList));
-    }
 }

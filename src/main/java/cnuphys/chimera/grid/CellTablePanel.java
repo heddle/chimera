@@ -1,6 +1,7 @@
 package cnuphys.chimera.grid;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -13,6 +14,7 @@ import java.util.EventListener;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -88,11 +90,26 @@ public class CellTablePanel extends JPanel {
             return str1.compareTo(str2);
         });
 
-        // Intercept header clicks to set our custom sort keys.
+        // Get the table header.
         JTableHeader header = table.getTableHeader();
-        // Make header font bold.
-        Font headerFont = header.getFont().deriveFont(Font.BOLD);
-        header.setFont(headerFont);
+
+        // Create and assign a custom header renderer with a background color.
+        DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                comp.setBackground(Color.LIGHT_GRAY); // Set the header background color.
+                setHorizontalAlignment(JLabel.CENTER);
+                return comp;
+            }
+        };
+        headerRenderer.setFont(header.getFont().deriveFont(Font.BOLD));
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
+        }
+
+        // Intercept header clicks to set our custom sort keys.
         header.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -118,23 +135,33 @@ public class CellTablePanel extends JPanel {
         // Only allow single row selection.
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        // Add mouse listener for row click events.
+        // Add a ListSelectionListener for more reliable row selection.
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int viewRow = table.getSelectedRow();
+                if (viewRow >= 0) {
+                    int modelRow = table.convertRowIndexToModel(viewRow);
+                    Cell cell = tableModel.getCellAt(modelRow);
+                    if (clickListener != null) {
+                        clickListener.cellClicked(cell);
+                    }
+                }
+            }
+        });
+
+        // Add a mouse listener for double-click events.
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int viewRow = table.getSelectedRow();
-                if (viewRow < 0) {
-                    return;
-                }
-                int modelRow = table.convertRowIndexToModel(viewRow);
-                Cell cell = tableModel.getCellAt(modelRow);
                 if (e.getClickCount() == 2) {
+                    int viewRow = table.getSelectedRow();
+                    if (viewRow < 0) {
+                        return;
+                    }
+                    int modelRow = table.convertRowIndexToModel(viewRow);
+                    Cell cell = tableModel.getCellAt(modelRow);
                     if (doubleClickListener != null) {
                         doubleClickListener.cellDoubleClicked(cell);
-                    }
-                } else if (e.getClickCount() == 1) {
-                    if (clickListener != null) {
-                        clickListener.cellClicked(cell);
                     }
                 }
             }
@@ -317,7 +344,7 @@ public class CellTablePanel extends JPanel {
             ChimeraCell3D.displayCell(cell);
         });
         cellTablePanel.setCellDoubleClickListener(cell -> {
-  //          displayCell(cell);
+            // displayCell(cell);
         });
 
         // Create a modeless dialog.
@@ -336,10 +363,4 @@ public class CellTablePanel extends JPanel {
         dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
     }
-    
-    //display the cell
-	private static void displayCell(Cell cell) {
-		System.out.println("Cell clicked");
-	}
-
-}
+ }

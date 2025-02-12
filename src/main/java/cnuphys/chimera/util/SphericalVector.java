@@ -1,0 +1,49 @@
+package cnuphys.chimera.util;
+
+public class SphericalVector {
+	
+	/** the polar angle in radians */
+	public double theta;
+	
+	/** the azimuthal angle in radians */
+	public double phi;
+	
+	/** the radius */
+	public double r;
+	
+	/**
+	 * Create a spherical vector.
+	 * 
+	 * @param theta the polar angle in radians
+	 * @param phi   the azimuthal angle in radians
+	 * @param r     the radius
+	 */
+	public SphericalVector(double theta, double phi, double r) {
+		this.theta = theta;
+		this.phi = MathUtil.normalizeAngle(phi);
+		this.r = r;
+	}
+	
+	/**
+     * Create a spherical vector from a cartesian point.
+     * 
+     * @param p the cartesian point
+     */
+	public SphericalVector(Point3D.Double p) {
+		r = Math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+		theta = Math.acos(p.z / r);
+		phi = MathUtil.normalizeAngle(Math.atan2(p.y, p.x));
+	}
+	
+	/**
+	 * Convert to a cartesian point.
+	 * 
+	 * @return the cartesian point
+	 */
+	public void toCartesian(Point3D.Double p) {
+		p.x = r * Math.sin(theta) * Math.cos(phi);
+		p.y = r * Math.sin(theta) * Math.sin(phi);
+		p.z = r * Math.cos(theta);
+	}
+
+}

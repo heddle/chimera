@@ -157,67 +157,6 @@ public class ChimeraPlane {
         return (A * p.x + B * p.y + C * p.z + D);
     }
 
-    // ... (other methods unchanged) ...
-
-    public static void main(String[] args) {
-        // Define three points that lie on the plane z = 5.
-        // This should create a plane with equation z - 5 = 0, i.e., A = 0, B = 0, C = 1, D = -5.
-        Point3D.Double p0 = new Point3D.Double(0.0, 5.0, 0.0);
-        Point3D.Double p1 = new Point3D.Double(0.0, 5.0, 1.0);
-        Point3D.Double p2 = new Point3D.Double(1.0, 5.0, 0.0);
-        
-        // Create the plane using the three points.
-        ChimeraPlane plane = new ChimeraPlane(p0, p1, p2);
-        
-        // Print out the computed plane parameters.
-        System.out.println("Plane equation: ");
-        System.out.println("  " + plane.A + " x + " + plane.B + " y + " + plane.C + " z + " + plane.D + " = 0");
-        
-        // Compute and print the length of the normal vector.
-        double normalLength = plane.planeLength();
-        System.out.println("Length of the normal (sqrt(A^2+B^2+C^2)): " + normalLength);
-        
-        // zprime() computes the signed distance from the origin to the plane.
-        double zprime = plane.zprime();
-        System.out.println("zprime (signed distance from origin) = " + zprime);
-        System.out.println("Absolute distance from origin = " + Math.abs(zprime));
-        
-        // Test the isIn() method with a point that should lie on the plane.
-        Point3D.Double pTest = new Point3D.Double(0.5, 0.5, 5.0);
-        System.out.println("Does point " + pTest + " lie in the plane? " + plane.isIn(pTest));
-        
-        // Dump the rotation matrix computed by ChimeraPlane.
-        System.out.println("\nRotation matrix (rmat.matrix):");
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                System.out.printf("%10.6f ", plane.rmat.matrix[i][j]);
-            }
-            System.out.println();
-        }
-        
-        // Demonstrate the new getRotationMatrices() method.
-        double[][][] matrices = plane.getRotationMatrices();
-        double[][] rotMat = matrices[0];
-        double[][] rotMatInv = matrices[1];
-        
-        System.out.println("\nReturned rotation matrix (rotMat):");
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                System.out.printf("%10.6f ", rotMat[i][j]);
-            }
-            System.out.println();
-        }
-        
-        System.out.println("\nReturned inverse rotation matrix (rotMatInv):");
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                System.out.printf("%10.6f ", rotMatInv[i][j]);
-            }
-            System.out.println();
-        }
-    }
-    
-    // (Other methods such as planeLength, zprime, isInAndContained, etc., remain unchanged.)
     
     /**
      * Computes the "length" of the plane, defined as sqrt(A^2 + B^2 + C^2).
@@ -238,25 +177,6 @@ public class ChimeraPlane {
     }
     
 
-    /**
-     * Checks whether two vectors have (approximately) the same direction.
-     *
-     * @param a The first vector.
-     * @param b The second vector.
-     * @return True if the vectors are pointing in nearly the same direction; otherwise, false.
-     */
-    private static boolean sameDirection(Point3D.Double a, Point3D.Double b) {
-        // If either vector is nearly zero, we consider them to not have a well-defined direction.
-    	
-    	double alen = a.length();
-    	double blen = b.length();
-    	
-        if (alen < TOL || blen < TOL) {
-            return false;
-        }
-        double cosTheta = a.dot(b) /(alen * blen);
-        return Math.abs(cosTheta - 1.0) < TOL;
-    }
  
 }
 

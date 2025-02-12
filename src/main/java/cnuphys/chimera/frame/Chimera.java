@@ -19,8 +19,11 @@ import cnuphys.bCNU.menu.MenuManager;
 import cnuphys.bCNU.util.Environment;
 import cnuphys.bCNU.util.FileUtilities;
 import cnuphys.bCNU.util.PropertySupport;
+import cnuphys.chimera.grid.Cell;
 import cnuphys.chimera.grid.CellTablePanel;
+import cnuphys.chimera.grid.ChimeraCell3D;
 import cnuphys.chimera.grid.ChimeraGrid;
+import cnuphys.chimera.grid.ChimeraGridPanel3D;
 import cnuphys.chimera.grid.Fiveplet;
 import cnuphys.chimera.grid.TestGrid;
 import cnuphys.chimera.monteCarlo.MonteCarloDialog;
@@ -50,6 +53,9 @@ public class Chimera extends BaseMDIApplication {
 
 	//2D MC view
 	private MonteCarloView2D _mc2DView;
+	
+	//menu items for showing all cells of a particular type
+	private JMenuItem[] _showAllType = new JMenuItem[Cell.intersectionTypes.length];
 
 
 	/**
@@ -145,35 +151,72 @@ public class Chimera extends BaseMDIApplication {
 
 		JMenuItem item = new JMenuItem("Find Intersecting Cells");
 		final JMenuItem tableItem = new JMenuItem("Cell Table");
-
-		item.addActionListener(e -> handleIntersectingCells(tableItem));
+		final JMenuItem showAllCells = new JMenuItem("Show All Cells");
 		
-		tableItem.addActionListener(e -> handleCellTabel());
+
+		item.addActionListener(e -> handleIntersectingCells(tableItem, showAllCells));
+		
+		tableItem.addActionListener(e -> handleCellTable());
 		tableItem.setEnabled(false);
+		
+		showAllCells.addActionListener(e -> showAllCells(Cell.allTypes));
+		showAllCells.setEnabled(false);
 		
 		menu.add(item);
         menu.add(tableItem);
+        menu.add(showAllCells);
+        
+		for (int i = 0; i < Cell.intersectionTypes.length; i++) {
+			final int type = i;
+			_showAllType[type] = new JMenuItem("Show All " + Cell.intersectionTypes[i]);
+			_showAllType[type].addActionListener(
+					e -> ChimeraCell3D.displayCellList(_chimeraGrid.getIntersectingCells(), _chimeraGrid, type));
+			_showAllType[type].setEnabled(false);
+			menu.add(_showAllType[type]);
+		}
+      
 		getJMenuBar().add(menu);
-
+		
+		
+	}
+	
+	//show the whole grid
+	private void handleGrid() {
+        ChimeraGridPanel3D.showGrid(_chimeraGrid);
 	}
 
 	//handle intersecting cells
-	private void handleIntersectingCells(JMenuItem tableItem) {
+	private void handleIntersectingCells(JMenuItem tableItem, JMenuItem showAllCells) {
 		_chimeraGrid.findIntersectingCells();
 		tableItem.setEnabled(true);
-
+		showAllCells.setEnabled(true);
+		for (int i = 0; i < Cell.intersectionTypes.length; i++) {
+			_showAllType[i].setEnabled(true);
+		}
 	}
 	
-	private void handleCellTabel() {
+	//show intersecting cells
+	private void showAllCells(int type) {
+		ChimeraCell3D.displayCellList(_chimeraGrid.getIntersectingCells(), 
+				_chimeraGrid, type);
+}
+
+	
+	private void handleCellTable() {
 		CellTablePanel.showDialog(_chimeraGrid.getIntersectingCells());
 	}
 
 	// add to the options menu
 	private void addToOptionMenu(JMenu omenu) {
+		
+		JMenuItem gridItem = new JMenuItem("Grid...");
+		gridItem.addActionListener(e -> handleGrid());
 
 	    JMenuItem monteCarloItem = new JMenuItem("Monte Carlo...");
 	    monteCarloItem.addActionListener(e -> handleMonteCarloDialog());
 
+	    
+	    omenu.add(gridItem);
 	    omenu.add(monteCarloItem);
 	}
 

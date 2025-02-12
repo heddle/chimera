@@ -2,6 +2,8 @@ package cnuphys.chimera.grid;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -12,11 +14,15 @@ import com.jogamp.opengl.GLAutoDrawable;
 
 import bCNU3D.Panel3D;
 import bCNU3D.Support3D;
+import cnuphys.bCNU.dialog.SimpleDialog;
 import cnuphys.chimera.util.MathUtil;
+import cnuphys.chimera.util.PanelKeys;
 import item3D.Axes3D;
 import item3D.Sphere;
 
 public class ChimeraGridPanel3D extends Panel3D {
+	
+	private static SimpleDialog _dialog;
 	
 	private ChimeraGrid _grid;
 	/*
@@ -59,14 +65,15 @@ public class ChimeraGridPanel3D extends Panel3D {
 		sphere.setGridlines(thetaVals, phiVals);
 		sphere.setGridColor(Color.black);
         addItem(sphere);
+        
+        float delta = 0.1f * fradius;
+        PanelKeys.addKeyListener(this, delta, delta, delta);
+
 	}
 	
 	public void setGrid(ChimeraGrid grid) {
 		clearItems();
 		_grid = grid;
-		
-		if (_grid != null) {
-		}
 	}
 	
 	@Override
@@ -163,6 +170,29 @@ public class ChimeraGridPanel3D extends Panel3D {
 		};
 		
 		
+	}
+	
+	/**
+     * Show the grid in a dialog
+     * @param grid the grid to show
+     */
+	public static void showGrid(ChimeraGrid grid) {
+		if (_dialog == null) {
+			_dialog = new SimpleDialog("Chimera Grid",  false, "Close") {
+				public Component createCenterComponent() {
+					ChimeraGridPanel3D panel = createPanel(grid);
+
+					return panel;
+				}
+				
+				@Override
+				public Dimension getPreferredSize() {
+					return new Dimension(800, 800);
+				}
+				
+			};
+		}
+		_dialog.setVisible(true);
 	}
 
 

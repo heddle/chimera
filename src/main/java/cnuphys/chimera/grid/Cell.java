@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 
 import cnuphys.bCNU.util.Bits;
+import cnuphys.chimera.util.ChimeraPlane;
 import cnuphys.chimera.util.Point3D;
 
 /**
@@ -20,12 +21,13 @@ public class Cell {
 	public static final int cornerPull = 5;
 	public static final int cornerPush = 6;
 	public static final int skewCut = 7;
-	public static final int singleEdge = 8; // probably doesn't happen
-	public static final int kiss = 9;
+	public static final int kiss = 8;
+	
+	public static int allTypes = -1;
 
 	// corresponding to the intersection types
 	public static final String[] intersectionTypes = { "cornerIn", "cornerOut", "doubleCornerIn", "doubleCornerOut",
-			"faceCut", "cornerPull", "cornerPush", "skewCut", "singleEdge", "kiss" };
+			"faceCut", "cornerPull", "cornerPush", "skewCut", "kiss" };
 
 	// the indices on the Cartesian grid
 	public int nx;
@@ -80,13 +82,12 @@ public class Cell {
 		for (int edgeIndex : edgeIntersections) {
 			// get the end points
 			int[] corners = GridSupport.getCornersOfEdges(edgeIndex);
-
-			Point3D.Double startCorner = new Point3D.Double(GridSupport.getCellCorner(grid, nx, ny, nz, corners[0]));
-			Point3D.Double endCorner = new Point3D.Double(GridSupport.getCellCorner(grid, nx, ny, nz, corners[1]));
-
-			edges[i] = new Edge(startCorner, endCorner, radius);
+			edges[i] = new Edge(grid, corners[0], corners[1], nx, ny, nz, radius);
 			i++;
 		}
+		
+		// order the edges
+		edges = EdgeOrdering.reorderEdges(edges);
 	}
 	
 	/**
@@ -136,9 +137,6 @@ public class Cell {
 			if (numInside == 2) {
 				if (numEdges == 4) {
 					return doubleCornerIn;
-				}
-				if (numEdges == 2) {
-					return singleEdge;
 				}
 			}
 
@@ -229,6 +227,103 @@ public class Cell {
 	public int numOutsideCorners() {
 		return 8 - numInsideCorners();
 	}
+	
+	/**
+	 * Returns a unit normal to the plane of the specified face.
+	 * The face is identified by its canonical index:
+	 * <ul>
+	 *   <li>Face 0: corners {0, 1, 3, 2} (typically the plane z = z0)</li>
+	 *   <li>Face 1: corners {4, 5, 7, 6} (typically the plane z = z1)</li>
+	 *   <li>Face 2: corners {0, 1, 5, 4} (typically the plane y = y0)</li>
+	 *   <li>Face 3: corners {2, 3, 7, 6} (typically the plane y = y1)</li>
+	 *   <li>Face 4: corners {0, 2, 6, 4} (typically the plane x = x0)</li>
+	 *   <li>Face 5: corners {1, 3, 7, 5} (typically the plane x = x1)</li>
+	 * </ul>
+	 * 
+	 * @param face the face index (0 to 5)
+	 * @return a double[3] representing the unit normal to that face.
+	 * @throws IllegalArgumentException if the face index is invalid.
+	 */
+	public double[] getUnitNormal(int face) {
+	    // Get all 8 cell corners (in canonical order) for this cell.
+	    double[][] cellCorners = GridSupport.getCellCorners(grid, nx, ny, nz);
+	    
+	    // Get the four canonical indices for the requested face.
+	    int[] faceIndices = GridSupport.getFaceCornerIndices(face);
+	    
+	    // Pick three points on the face.
+	    double[] p0 = cellCorners[faceIndices[0]];
+	    double[] p1 = cellCorners[faceIndices[1]];
+	    double[] p2 = cellCorners[faceIndices[2]];
+	    
+	    // Compute two vectors that lie in the face.
+	    double[] v1 = new double[] { p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2] };
+	    double[] v2 = new double[] { p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2] };
+	    
+	    // The cross product v1 x v2 gives a vector perpendicular to the face.
+	    double[] normal = new double[3];
+	    normal[0] = v1[1] * v2[2] - v1[2] * v2[1];
+	    normal[1] = v1[2] * v2[0] - v1[0] * v2[2];
+	    normal[2] = v1[0] * v2[1] - v1[1] * v2[0];
+	    
+	    // Normalize the vector.
+	    double mag = Math.sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
+	    if (mag == 0) {
+	        throw new IllegalStateException("Degenerate face: cannot compute a normal.");
+	    }
+	    normal[0] /= mag;
+	    normal[1] /= mag;
+	    normal[2] /= mag;
+	    
+	    return normal;
+	}
+	
+	   /**
+     * Returns a ChimeraPlane corresponding to the given face index.
+     * <p>
+     * The face index must be between 0 and 5 (inclusive) and uses the canonical
+     * face definitions:
+     * <ul>
+     *   <li>Face 0: corners {0, 1, 3, 2} (typically the plane z = z0)</li>
+     *   <li>Face 1: corners {4, 5, 7, 6} (typically the plane z = z1)</li>
+     *   <li>Face 2: corners {0, 1, 5, 4} (typically the plane y = y0)</li>
+     *   <li>Face 3: corners {2, 3, 7, 6} (typically the plane y = y1)</li>
+     *   <li>Face 4: corners {0, 2, 6, 4} (typically the plane x = x0)</li>
+     *   <li>Face 5: corners {1, 3, 7, 5} (typically the plane x = x1)</li>
+     * </ul>
+     * </p>
+     * 
+     * @param face the face index (0 to 5)
+     * @return the ChimeraPlane corresponding to that face.
+     * @throws IllegalArgumentException if the face index is invalid.
+     */
+    public ChimeraPlane getPlane(int face) {
+        // Validate face index.
+        if (face < 0 || face > 5) {
+            throw new IllegalArgumentException("Face index must be between 0 and 5: " + face);
+        }
+        
+        // Get all 8 cell corners (each a double[3]) for this cell.
+        double[][] cellCorners = GridSupport.getCellCorners(grid, nx, ny, nz);
+        
+        // Get the canonical face corner indices.
+        int[] faceIndices = GridSupport.getFaceCornerIndices(face);
+        
+        // Convert the first three corners for the face into Point3D.Double objects.
+        // (Assuming the ordering in GridSupport is such that these three points are non-collinear.)
+        Point3D.Double p0 = new Point3D.Double(cellCorners[faceIndices[0]][0],
+                                                 cellCorners[faceIndices[0]][1],
+                                                 cellCorners[faceIndices[0]][2]);
+        Point3D.Double p1 = new Point3D.Double(cellCorners[faceIndices[1]][0],
+                                                 cellCorners[faceIndices[1]][1],
+                                                 cellCorners[faceIndices[1]][2]);
+        Point3D.Double p2 = new Point3D.Double(cellCorners[faceIndices[2]][0],
+                                                 cellCorners[faceIndices[2]][1],
+                                                 cellCorners[faceIndices[2]][2]);
+        
+        // Create and return a new ChimeraPlane defined by these three points.
+        return new ChimeraPlane(p0, p1, p2);
+    }
 
 	@Override
 	public boolean equals(Object obj) {
@@ -276,7 +371,7 @@ public class Cell {
 	 */
 	public static void report(List<Cell> list) {
 		System.out.println("\nIntersecting Cells Overview");
-		int[] counts = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		int[] counts = { 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 		for (Cell t : list) {
 			counts[t.intersectionType]++;

@@ -6,19 +6,51 @@ public class Edge {
 	
 	private Point3D.Double startPoint;
 	private Point3D.Double endPoint;
-	
 	private Point3D.Double intersection;
-
+	
+	//each corner is on three faces
+	int[][] cornerfaces;
+	
+	//each edge is on two faces
+	private int[] edgeFaces;
+	
 	/**
-	 * Constructor for the Edge class.
-	 * @param startPoint The starting point of the edge.
-	 * @param endPoint The ending point of the edge.
+	 * Constructor for an Edge.
+	 * @param grid The Cartesian grid.
+	 * @param corner0 The canonical index of the first corner.
+	 * @param corner1 The canonical index of the second corner.
+	 * @param nx The x index of the cell in the grid.
+	 * @param ny The y index of the cell in the grid.
+	 * @param nz The z index of the cell in the grid.
 	 * @param radius The radius of the sphere.
      */
-	public Edge(Point3D.Double startPoint, Point3D.Double endPoint, double radius) {
-		this.startPoint = startPoint;
-        this.endPoint = endPoint;
+	public Edge(CartesianGrid grid, int corner0, int corner1, int nx, int ny, int nz, double radius) {
+		
+		startPoint = new Point3D.Double(GridSupport.getCellCorner(grid, nx, ny, nz, corner0));
+		endPoint = new Point3D.Double(GridSupport.getCellCorner(grid, nx, ny, nz, corner1));
+		
+		cornerfaces = new int[2][];
+		cornerfaces[0] = GridSupport.getCornerFaces(corner0);
+		cornerfaces[1] = GridSupport.getCornerFaces(corner1);
+		
+		//each edge is on two faces
+		int gridIndex = GridSupport.getEdgeIndex(corner0, corner1);
+		if (gridIndex < 0) {
+			throw new IllegalArgumentException("Invalid edge indices: " + corner0 + ", " + corner1);
+		}
+		edgeFaces = GridSupport.getEdgeFaces(gridIndex);
+		
+		//find the intersection point
         intersection = findSphereIntersection(startPoint, endPoint, radius);
+	}
+	
+	/**
+	 * Get the faces that the edge is on.
+	 * 
+	 * @return The faces.
+	 */
+	public int[] getEdgeFaces() {
+		return edgeFaces;
 	}
 	
 	/**
@@ -36,6 +68,23 @@ public class Edge {
 	 */
 	public Point3D.Double getEndPoint() {
 		return endPoint;
+	}
+	
+	
+	/**
+	 * Get a common face with this and another edge
+	 * @param other The other edge.
+	 * @return A common face or -1 if no common face
+	 */
+	public int getCommonFace(Edge other) {
+		for (int i = 0; i < edgeFaces.length; i++) {
+			for (int j = 0; j < other.edgeFaces.length; j++) {
+				if (edgeFaces[i] == other.edgeFaces[j]) {
+					return edgeFaces[i];
+				}
+			}
+		}
+		return -1;
 	}
 	
 	/**

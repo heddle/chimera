@@ -75,6 +75,19 @@ public class Grid1D {
         // The interval is between insertionPoint - 1 and insertionPoint
         return insertionPoint - 1;
     }
+    
+    /**
+     * Returns the average spacing between grid points.
+     * 
+     * @return The average spacing between grid points
+     */
+	public double getAverageSpacing() {
+		double sum = 0;
+		for (int i = 1; i < pts.length; i++) {
+			sum += pts[i] - pts[i - 1];
+		}
+		return sum / (pts.length - 1);
+	}
 
     /**
      * Returns the grid point at the specified index.

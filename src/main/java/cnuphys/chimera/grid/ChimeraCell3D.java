@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.List;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
@@ -14,6 +15,9 @@ import bCNU3D.Support3D;
 import item3D.Axes3D;
 import item3D.Item3D;
 import cnuphys.bCNU.dialog.SimpleDialog;
+import cnuphys.chimera.curve.Curve;
+import cnuphys.chimera.curve.CurveUtils;
+import cnuphys.chimera.util.PanelKeys;
 import cnuphys.chimera.util.Point3D;
 
 /**
@@ -32,14 +36,21 @@ import cnuphys.chimera.util.Point3D;
 public class ChimeraCell3D extends Item3D {
 
     // Static dialog-related fields for display; only one dialog instance is used.
-    private static Panel3D panel3D;
-    private static SimpleDialog dialog;
+    private static Panel3D oneCellPanel3D;
+    private static Panel3D cellListPanel3D;
+    private static SimpleDialog oneCellDialog;
+    private static SimpleDialog cellListDialog;
     private static ChimeraCell3D cell3D;
 
     private Cell _cell;
     // The eight cell corners (each is a double[3]: {x, y, z})
     private double[][] _corners;
     private double _radius;
+    private boolean _translate;
+    boolean _showSphere;
+    boolean _showClip;
+    boolean _labelMarkers;
+    float _markerSize = 10f;
 
     /**
      * Constructs a ChimeraCell3D.
@@ -47,8 +58,14 @@ public class ChimeraCell3D extends Item3D {
      * @param panel the Panel3D on which to draw this item.
      * @param cell  the Cell to be displayed.
      */
-    public ChimeraCell3D(Panel3D panel, Cell cell) {
+	public ChimeraCell3D(Panel3D panel, Cell cell, boolean translate, boolean showSphere, boolean showClip,
+			boolean labelMarkers, float markerSize) {
         super(panel);
+        _translate = translate;
+        _showSphere = showSphere;
+        _markerSize = markerSize;
+        _showClip = showClip;
+        _labelMarkers = labelMarkers;
         setCell(cell);
     }
 
@@ -83,31 +100,47 @@ public class ChimeraCell3D extends Item3D {
         Support3D.prepareForTransparent(drawable);
 
         // Compute cell center and bounds.
-        double[] center = computeCenter(_corners);
+        
+		double[] center = computeCenter(_corners);
+		
+		//if just displaying one cell, translate the origin to center of cell
+		if (_translate) {
+		      gl.glTranslatef((float) -center[0], (float) -center[1], (float) -center[2]);
+		}
         double[] bounds = computeBounds(_corners);  // [xmin, xmax, ymin, ymax, zmin, zmax]
 
         // Translate so that the cell center is at the origin.
-        gl.glTranslatef((float) -center[0], (float) -center[1], (float) -center[2]);
-
+  
         // Draw the cell as a rectangular solid.
         Color cellFaceColor = new Color(0, 0, 0, 28);
         Support3D.drawRectangularSolid(drawable, (float) center[0], (float) center[1], (float) center[2],
                 (float) (bounds[1] - bounds[0]), (float) (bounds[3] - bounds[2]), (float) (bounds[5] - bounds[4]),
-                cellFaceColor, 1f, true);
+                cellFaceColor, Color.black, 1f, true);
 
         // Draw the sphere with different colors outside and inside the cell.
-        clipSphere(drawable, bounds);
-
+		if (_showSphere) {
+			clipSphere(drawable, bounds, _showClip);
+		}
+    
         // Draw markers at intersections along the cell's edges.
         Edge[] edges = _cell.getEdges();
 
         if (edges != null) {
+        	int index = 0;
             for (Edge edge : edges) {
                 Point3D.Double ip = edge.getIntersection();
-                if (ip != null) {
-                    Color markerColor = Color.red;
-                    Support3D.drawPoint(drawable, (float) ip.x, (float) ip.y, (float) ip.z, markerColor, 10f, true);
-                }
+				if (ip != null) {
+					Color markerColor = Color.red;
+					if (_labelMarkers) {
+						Support3D.drawMarker(drawable, (float) ip.x, (float) ip.y, (float) ip.z, markerColor, _markerSize,
+								true, "" + index, .3f, Color.black);
+					}
+					else {
+						Support3D.drawPoint(drawable, (float) ip.x, (float) ip.y, (float) ip.z, markerColor,
+								_markerSize, true);
+					}
+				}
+                index++;
             }
         }
 
@@ -123,7 +156,7 @@ public class ChimeraCell3D extends Item3D {
                 double ry = _corners[i][1];
                 double rz = _corners[i][2];
                 
-                Support3D.drawPoint(drawable, (float) rx, (float) ry, (float) rz, Color.blue, 10f);
+                Support3D.drawPoint(drawable, (float) rx, (float) ry, (float) rz, Color.cyan, _markerSize);
             }
         }
 
@@ -137,11 +170,15 @@ public class ChimeraCell3D extends Item3D {
      * @param drawable the OpenGL drawable.
      * @param bounds   the cell bounds in the form [xmin, xmax, ymin, ymax, zmin, zmax].
      */
-    private void clipSphere(GLAutoDrawable drawable, double[] bounds) {
-        GL2 gl = drawable.getGL().getGL2();
+	private void clipSphere(GLAutoDrawable drawable, double[] bounds, boolean showClip) {
+		GL2 gl = drawable.getGL().getGL2();
 
-        // First, draw the sphere's outer (wireframe) for context.
-        Support3D.wireSphere(drawable, 0f, 0f, 0f, (float) _radius, 50, 50, Color.gray);
+		// First, draw the sphere's outer (wireframe) for context.
+		Support3D.wireSphere(drawable, 0f, 0f, 0f, (float) _radius, 50, 50, Color.gray);
+		
+		if (!showClip) {
+			return;
+		}
 
         // Save current state before enabling clipping.
         gl.glPushAttrib(GL2.GL_ENABLE_BIT | GL2.GL_COLOR_BUFFER_BIT);
@@ -180,6 +217,37 @@ public class ChimeraCell3D extends Item3D {
         gl.glDisable(GL2.GL_CLIP_PLANE4);
         gl.glDisable(GL2.GL_CLIP_PLANE5);
         gl.glPopAttrib();
+        
+        Edge[] edges = _cell.getEdges();
+        int numEdges = edges.length;
+		for (int i = 0; i < numEdges; i++) {
+			int j = (i + 1) % numEdges;
+			
+			int commonFace = edges[i].getCommonFace(edges[j]);
+			System.err.println("Common face: " + commonFace);
+			
+			Point3D.Double p0 = edges[i].getIntersection();
+			Point3D.Double p1 = edges[j].getIntersection();
+			
+			double[] norm1 = _cell.getUnitNormal(commonFace);
+			Point3D.Double norm2 = _cell.getPlane(commonFace).getNormal();
+			System.err.println("norm1: " + norm1[0] + " " + norm1[1] + " " + norm1[2]);
+			System.err.println("norm2: " + norm2.x + " " + norm2.y + " " + norm2.z);
+			
+			
+//			Curve curve;
+//			curve = CurveUtils.getSphereFaceCurve(p0, p1, commonFace, _radius);
+//			
+//			double dt = 0.1;
+//			for (double t = 0; t <= 1; t += dt) {
+//				Point3D.Double p = curve.getPoint(t);
+//				System.out.println(p.length()/_radius);
+//				Support3D.drawPoint(drawable, (float) p.x, (float) p.y, (float) p.z, Color.yellow, 5f);
+//			}
+			
+			Support3D.drawLine(drawable, (float) p0.x, (float) p0.y, (float) p0.z, (float) p1.x, (float) p1.y, (float) p1.z, Color.yellow, 2f);
+		}
+        
     }
 
     /**
@@ -226,8 +294,7 @@ public class ChimeraCell3D extends Item3D {
      * @param cell the cell to be displayed.
      */
     public static void displayCell(Cell cell) {
-        System.out.println("Cell clicked");
-
+ 
         double[][] corners = GridSupport.getCellCorners(cell.getCartesianGrid(), cell.nx, cell.ny, cell.nz);
         double[] bounds = computeStaticBounds(corners);
         double dz = bounds[5] - bounds[4];
@@ -242,19 +309,16 @@ public class ChimeraCell3D extends Item3D {
         final float thetaX = 45f;
         final float thetaY = 45f;
         final float thetaZ = 45f;
+        float delta = (float)(cell.getCartesianGrid().getXGrid().getAverageSpacing()/10);
 
-        if (dialog == null) {
-            panel3D = new Panel3D(thetaX, thetaY, thetaZ, xdist, ydist, zdist) {
+        if (oneCellDialog == null) {
+            oneCellPanel3D = new Panel3D(thetaX, thetaY, thetaZ, xdist, ydist, zdist) {
                 @Override
                 public void createInitialItems() {
                     String[] labels = { "X", "Y", "Z" };
-//                    Axes3D axes = new Axes3D(this, -radExt, radExt, -radExt, radExt, -radExt, radExt,
-//                            labels, Color.black, 0.5f, 2, 2, 2, Color.black, Color.black,
-//                            new Font("SansSerif", Font.PLAIN, 14), 1);
-                    cell3D = new ChimeraCell3D(this, cell);
+                    cell3D = new ChimeraCell3D(this, cell, true, true, true, true, 10f);
                     addItem(cell3D);
- //                   addItem(axes);
-                }
+                 }
 
                 @Override
                 public Dimension getPreferredSize() {
@@ -264,20 +328,23 @@ public class ChimeraCell3D extends Item3D {
 
             String title = "Cell " + cell.nx + ", " + cell.ny + ", " + cell.nz + " ["
                     + cell.getIntersectionTypeString() + "]";
-            dialog = new SimpleDialog(title, false, "Close") {
+            oneCellDialog = new SimpleDialog(title, false, "Close") {
                 @Override
                 public Component createCenterComponent() {
-                    return panel3D;
+                    return oneCellPanel3D;
                 }
             };
+            
+            PanelKeys.addKeyListener(oneCellPanel3D, delta, delta, delta);
+
         } else {
             cell3D.setCell(cell);
-            dialog.setTitle("Cell " + cell.nx + ", " + cell.ny + ", " + cell.nz + " ["
+            oneCellDialog.setTitle("Cell " + cell.nx + ", " + cell.ny + ", " + cell.nz + " ["
                     + cell.getIntersectionTypeString() + "]");
-             panel3D.refresh();
+             oneCellPanel3D.refresh();
         }
 
-        dialog.setVisible(true);
+        oneCellDialog.setVisible(true);
     }
 
     /**
@@ -299,5 +366,70 @@ public class ChimeraCell3D extends Item3D {
             zmax = Math.max(zmax, corners[i][2]);
         }
         return new double[] { xmin, xmax, ymin, ymax, zmin, zmax };
+    }
+    
+    /**
+     * Displays a list of cells in a dialog containing a Panel3D.
+     * @param cells
+     * @param grid
+     */
+	public static void displayCellList(List<Cell> cells, ChimeraGrid grid, int showType) {
+		
+		if (cellListDialog != null) {
+			cellListDialog.dispose();
+			cellListDialog = null;
+		}
+		
+		CartesianGrid cartGrid = grid.getCartesianGrid();
+		
+		final float xymax = (float) Math.max(cartGrid.getXMax(), cartGrid.getYMax());
+		final float zmax = (float) cartGrid.getZMax();
+		float xdist = 0.1f*xymax;
+		float ydist = .1f*xymax;
+		float zdist = -3f * zmax;
+		
+		double radius = grid.getSphericalGrid().getRadius();
+		
+		float delta = 0.1f * (float) radius;
+		
+		cellListPanel3D = new Panel3D(45f, 45f, 45f, xdist, ydist, zdist) {
+			@Override
+			public void createInitialItems() {
+				boolean first = true;
+				
+				for (Cell cell : cells) {
+					int type = cell.getIntersectionType();
+					boolean show = (showType == Cell.allTypes || type == showType);
+					if (show) {
+						ChimeraCell3D cell3D = new ChimeraCell3D(this, cell, false, first, false, false, 3f);
+						first = false;
+						addItem(cell3D);
+					}
+				}
+			}
+
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(800, 800);
+            }
+        };
+        PanelKeys.addKeyListener(cellListPanel3D,delta, delta, delta);
+
+        String title = "Cell List [;";
+		if (showType == Cell.allTypes) {
+			title += "All Types]";
+		}
+		else {
+			title += Cell.intersectionTypes[showType] + "]";
+		}
+        
+        cellListDialog = new SimpleDialog(title, false, "Close") {
+            @Override
+            public Component createCenterComponent() {
+                return cellListPanel3D;
+            }
+        };
+		
+        cellListDialog.setVisible(true);
     }
 }

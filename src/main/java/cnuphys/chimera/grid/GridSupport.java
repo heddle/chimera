@@ -60,6 +60,98 @@ public class GridSupport {
     }
     
     /**
+     * Returns the indices of the three faces on which the given corner lies.
+     * The canonical numbering for the corners is assumed:
+     * <pre>
+     * Corner 0: (x0, y0, z0)
+     * Corner 1: (x1, y0, z0)
+     * Corner 2: (x0, y1, z0)
+     * Corner 3: (x1, y1, z0)
+     * Corner 4: (x0, y0, z1)
+     * Corner 5: (x1, y0, z1)
+     * Corner 6: (x0, y1, z1)
+     * Corner 7: (x1, y1, z1)
+     * </pre>
+     * The faces are numbered as:
+     * <pre>
+     * Face 0: {0, 1, 3, 2} (xy plane at z=z0)
+     * Face 1: {4, 5, 7, 6} (xy plane at z=z1)
+     * Face 2: {0, 1, 5, 4} (xz plane at y=y0)
+     * Face 3: {2, 3, 7, 6} (xz plane at y=y1)
+     * Face 4: {0, 2, 6, 4} (yz plane at x=x0)
+     * Face 5: {1, 3, 7, 5} (yz plane at x=x1)
+     * </pre>
+     *
+     * @param cornerIndex the index of the corner (0 to 7)
+     * @return an int array of length 3 containing the face indices for the corner.
+     * @throws IllegalArgumentException if the cornerIndex is not in [0, 7].
+     */
+    public static int[] getCornerFaces(int cornerIndex) {
+        if (cornerIndex < 0 || cornerIndex > 7) {
+            throw new IllegalArgumentException("Corner index must be between 0 and 7.");
+        }
+
+        // Determine the face for the z-coordinate.
+        // If the third bit (value 4) is set, then z = z1, and the face is 1.
+        // Otherwise, z = z0 and the face is 0.
+        int faceZ = ((cornerIndex & 4) == 0) ? 0 : 1;
+
+        // Determine the face for the y-coordinate.
+        // If the second bit (value 2) is set, then y = y1, and the face is 3.
+        // Otherwise, y = y0 and the face is 2.
+        int faceY = ((cornerIndex & 2) == 0) ? 2 : 3;
+
+        // Determine the face for the x-coordinate.
+        // If the least-significant bit (value 1) is set, then x = x1, and the face is 5.
+        // Otherwise, x = x0 and the face is 4.
+        int faceX = ((cornerIndex & 1) == 0) ? 4 : 5;
+
+        return new int[] { faceZ, faceY, faceX };
+    }
+    
+    /**
+     * Returns the two face indices (as an int[2]) that the given edge is on.
+     * The edge is specified by its canonical index (0-11) as defined by
+     * getCornersOfEdges.
+     *
+     * @param edgeIndex the canonical edge index (0 to 11)
+     * @return an int array of length 2 containing the indices of the two faces that the edge lies on.
+     * @throws IllegalArgumentException if the edge index is invalid or if the edge does not lie on exactly two faces.
+     */
+    public static int[] getEdgeFaces(int edgeIndex) {
+        // Get the two corner indices that define the edge.
+        int[] edgeCorners = getCornersOfEdges(edgeIndex);
+        int cornerA = edgeCorners[0];
+        int cornerB = edgeCorners[1];
+
+        // Get the faces associated with each corner.
+        int[] facesA = getCornerFaces(cornerA);  // returns three face indices for cornerA
+        int[] facesB = getCornerFaces(cornerB);  // returns three face indices for cornerB
+
+        // Find the common faces between the two corners.
+        List<Integer> commonFaces = new ArrayList<>(2);
+        for (int face : facesA) {
+            for (int faceB : facesB) {
+                if (face == faceB) {
+                    commonFaces.add(face);
+                }
+            }
+        }
+        
+        // There should be exactly two faces in common.
+        if (commonFaces.size() != 2) {
+            throw new IllegalArgumentException("Edge " + edgeIndex + " does not lie on exactly two faces.");
+        }
+        
+        // Convert the result to an int[] and return.
+        int[] result = new int[2];
+        result[0] = commonFaces.get(0);
+        result[1] = commonFaces.get(1);
+        return result;
+    }
+
+    
+    /**
      * Get the canonical edge index for the given pair of corners.
      * @param edge the pair of corners that define the edge. The corners are
      *            numbered as follows:
@@ -90,6 +182,8 @@ public class GridSupport {
 		case 9 -> new int[] { 4, 6 };
 		case 10 -> new int[] { 5, 7 };
 		case 11 -> new int[] { 6, 7 };
+		
+		
 		default -> throw new IllegalArgumentException("Invalid edge index.");
 		};
     }

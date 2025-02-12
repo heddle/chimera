@@ -6,6 +6,7 @@ import java.util.List;
 
 import cnuphys.bCNU.util.Bits;
 import cnuphys.chimera.util.ChimeraPlane;
+import cnuphys.chimera.util.ClosestFacePoint;
 import cnuphys.chimera.util.Point3D;
 
 /**
@@ -18,6 +19,7 @@ public class ChimeraGrid {
     private final CartesianGrid cartesianGrid;
     private final SphericalGrid sphericalGrid;
     
+    //the list of all intersecting cells
     private List<Cell> intersectingCells = new ArrayList<>();
 
     public ChimeraGrid(CartesianGrid cartesianGrid, SphericalGrid sphericalGrid) {
@@ -97,6 +99,7 @@ public class ChimeraGrid {
 						int kissFace = kissTest(cell, radius);
 						if (kissFace >= 0) {
 							intersectingCells.add(new Cell(cartesianGrid, ix, iy, iz, cornerBits, radius));
+							System.out.println("  Index:  " + (intersectingCells.size()-1));
 						}
 					}
 
@@ -108,7 +111,7 @@ public class ChimeraGrid {
     }
 
     //do the hideous kiss test (this is the test devised by chatGPT)
-    private int kissTestGPT(double[][] corners, double sphereRadius) {
+    private int kissTest(double[][] corners, double sphereRadius) {
     	
     	//get the closest face
     	int closestFace = -1;
@@ -120,52 +123,24 @@ public class ChimeraGrid {
 				closestFace = face;
 			}
 		}
-		
+
 		double[][] faceCorners = GridSupport.getFaceCorners(corners, closestFace);
-		double[] closePoint = ClosestPointOnFace.closestPointOnFace(faceCorners);
-		
-		if (closePoint == null) {
-			return -1;
+
+		if (ClosestFacePoint.arePointsCoplanar(faceCorners, ClosestFacePoint.TOL)) {
+			double[] closePoint = ClosestFacePoint.closestPointOnFaceToOrigin(faceCorners);
+			double dist = Math.sqrt(
+					closePoint[0] * closePoint[0] + closePoint[1] * closePoint[1] + closePoint[2] * closePoint[2]);
+			if (dist < sphereRadius) {
+				return closestFace;
+			}
+		} else {
+			System.err.println("Face not coplanar!");
+			System.exit(-1);
 		}
-		double x = closePoint[0], y = closePoint[1], z = closePoint[2];
-		double distsq = x * x + y * y + z * z;
-		if (distsq < sphereRadius * sphereRadius) {
-			return closestFace;
-        }
    	
     	return -1;
     }
-    
-    //do the hideous kiss test (this is the test used previously)
-    private int kissTest(double[][] corners, double sphereRadius) {
 
-    	//get the closest face
-    	int closestFace = -1;
-    	double minDist = Double.MAX_VALUE;
-		for (int face = 0; face < 6; face++) {
-			double distsq = GridSupport.faceAverageDistanceSquare(corners, face);
-			if (distsq < minDist) {
-				minDist = distsq;
-				closestFace = face;
-			}
-		}
-		
-		double[][] faceCorners = GridSupport.getFaceCorners(corners, closestFace);
-
-		Point3D.Double p0 = new Point3D.Double(faceCorners[0][0], faceCorners[0][1], faceCorners[0][2]);
-		Point3D.Double p1 = new Point3D.Double(faceCorners[1][0], faceCorners[1][1], faceCorners[1][2]);
-		Point3D.Double p2 = new Point3D.Double(faceCorners[2][0], faceCorners[2][1], faceCorners[2][2]);
-		Point3D.Double v = new Point3D.Double();
-		
-		ChimeraPlane plane = new ChimeraPlane(p0, p1, p2);
-		plane.getPerpendicular(v);
-		
-		if (plane.isInAndContained(v) && v.length() < sphereRadius) {
-			return closestFace;
-		}
-    	
-    	return -1;
-    }
 
     	 
     

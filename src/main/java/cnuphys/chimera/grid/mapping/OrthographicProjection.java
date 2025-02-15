@@ -24,9 +24,6 @@ public class OrthographicProjection implements IMapProjection {
     private static final double MINLAT = -MAXLAT; // Minimum latitude in raduians
 
 
-    private ArrayList<double[]> _lonRanges;
-    private ArrayList<double[]> _latRanges;
-
 	public OrthographicProjection(double radius) {
 		this(radius, Math.toRadians(-15), Math.toRadians(10));
 	}
@@ -41,9 +38,6 @@ public class OrthographicProjection implements IMapProjection {
     	_radius = radius;
         this.centerLon = centerLon;
         this.centerLat = centerLat;
-
-        _lonRanges = getVisibleLongitudeRange(centerLon);
-        _latRanges = getVisibleLatitudeRange(centerLat);
     }
 
     @Override
@@ -163,7 +157,7 @@ public class OrthographicProjection implements IMapProjection {
 		}
 
 		boolean isEquator = Math.abs(latitude) < 1e-6;
-		g2.setColor(isEquator ? Color.red : Color.black);
+		g2.setColor(isEquator ? Color.white : Color.white);
 		g2.draw(path);
    }
 
@@ -198,7 +192,7 @@ public class OrthographicProjection implements IMapProjection {
 		}
 
 		boolean isPrimeMeridian = Math.abs(longitude) < 1e-6;
-		g2.setColor(isPrimeMeridian ? Color.red : Color.black);
+		g2.setColor(isPrimeMeridian ? Color.white : Color.white);
 		g2.draw(path);
     }
 

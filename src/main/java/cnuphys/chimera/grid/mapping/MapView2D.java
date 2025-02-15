@@ -6,7 +6,6 @@ import java.awt.geom.Rectangle2D;
 
 import cnuphys.bCNU.view.BaseView;
 import cnuphys.chimera.frame.Chimera;
-import cnuphys.chimera.grid.SphericalGrid;
 
 public class MapView2D extends BaseView implements MouseMotionListener {
 

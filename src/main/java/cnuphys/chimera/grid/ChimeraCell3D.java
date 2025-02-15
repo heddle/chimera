@@ -129,7 +129,7 @@ public class ChimeraCell3D extends Item3D {
             for (Edge edge : edges) {
                 Point3D.Double ip = edge.getIntersection();
 				if (ip != null) {
-					Color markerColor = Color.red;
+					Color markerColor = Color.black;
 					if (_labelMarkers) {
 						Support3D.drawMarker(drawable, (float) ip.x, (float) ip.y, (float) ip.z, markerColor, _markerSize,
 								true, "" + index, .3f, Color.black);
@@ -174,6 +174,7 @@ public class ChimeraCell3D extends Item3D {
 
 		// First, draw the sphere's outer (wireframe) for context.
 		Support3D.wireSphere(drawable, 0f, 0f, 0f, (float) _radius, 50, 50, Color.gray);
+	//	Support3D.solidShadedSphere(drawable, 0f, 0f, 0f, (float) _radius, 100, 100, new Color(160, 160, 160, 28), true);
 
 		if (!showClip) {
 			return;
@@ -205,7 +206,7 @@ public class ChimeraCell3D extends Item3D {
         gl.glEnable(GL2ES1.GL_CLIP_PLANE5);
 
         // Draw the sphere inside the cell with the "inside" color.
-        Color insideColor = new Color(0, 128, 0, 100);
+        Color insideColor = new Color(196, 196, 196, 100);
         Support3D.solidSphereShell(drawable, 0f, 0f, 0f, (float) (0.9999 * _radius), (float) _radius, 200, 200, insideColor);
 
         // Disable the clipping planes and restore state.
@@ -235,7 +236,7 @@ public class ChimeraCell3D extends Item3D {
 
 			GeneralCurve curve = new GeneralCurve(_cell, commonFace, p0, p1, _radius);
 			float[] points = curve.getPolyline(20);
-			Support3D.drawPolyLine(drawable, points, Color.yellow, 2f);
+			Support3D.drawPolyLine(drawable, points, Color.black, 2f);
 
 //
 //			double dt = 0.1;

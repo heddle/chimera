@@ -12,7 +12,7 @@ import cnuphys.chimera.util.ThetaPhi;
 
 public class MonteCarloPoint {
 
-	private static Color[] mapColors = {
+	private static Color[] mapColors1 = {
             new Color(70, 130, 180),  // Ocean Blue
             new Color(34, 139, 34),   // Earth Green
             new Color(240, 230, 140), // Desert Yellow
@@ -20,9 +20,20 @@ public class MonteCarloPoint {
             new Color(95, 158, 160),  // Dark Cyan
             new Color(220, 20, 60)    // Urban Red
         };
+	
+		private static Color[] monoChromeColors = { 
+				new Color(32, 32, 32),
+				new Color(64, 64, 64),
+				new Color(96, 96, 96),
+				new Color(128, 128, 128),
+				new Color(160, 160, 160),
+				new Color(192, 192, 193)
+		};
 
 	public ThetaPhi thetaPhi;
 	public Fiveplet fiveplet;
+	
+	private Color mapColors[] = monoChromeColors;
 
 	private static Random random = new Random();
 

@@ -1,109 +1,106 @@
 package cnuphys.chimera.curve;
 
-import java.awt.geom.Point2D;
-
 import cnuphys.chimera.grid.Cell;
-import cnuphys.chimera.util.ChimeraPlane;
 import cnuphys.chimera.util.Point3D;
-import cnuphys.chimera.util.Point3D.Double;
 import cnuphys.chimera.util.SphericalVector;
+import cnuphys.chimera.util.Point3D.Double;
 
 public class GeneralCurve implements Curve {
-	
-	private double[][] rMatrix;
-	private double[][] rMatrixInv;
-	
-	private SphericalVector sv0Prime;
-	private SphericalVector sv1Prime;
-	
-	private double radius;
-	double thetaPrime;
-	double phi0Prime;
-	double delPhi;
-	Point3D.Double wp = new Point3D.Double();
-	
-	public GeneralCurve(Cell cell, int face, Point3D.Double p0, Point3D.Double p1, double R) {
-		radius = R;
-		//get the rotation matrices that rotate the normal to the z-axis
-        ChimeraPlane plane = cell.getPlane(face);
-        double[][][] matrices = plane.getRotationMatrices();
+
+    private int face;
+    
+    private Point3D.Double p0;
+    private Point3D.Double p1;
+    private SphericalVector sv0;
+    private SphericalVector sv1;
+    private double R;
+
+    public GeneralCurve(Cell cell, int face, Point3D.Double p0, Point3D.Double p1, double R) {
+        this.face = face;
+        this.p0 = p0;
+        this.p1 = p1;
+        this.R = R;
         
-        rMatrix = matrices[0];
-        rMatrixInv = matrices[1];
-        
-        //rotate the points to the primed system
-        Point3D.Double p0Prime = rotate(p0);
-        Point3D.Double p1Prime = rotate(p1);
-        
-        //get the spherical vectors
-        sv0Prime = new SphericalVector(p0Prime);
-        sv1Prime = new SphericalVector(p1Prime);
-        thetaPrime = sv0Prime.theta;
-        phi0Prime = sv0Prime.phi;
-        delPhi = sv1Prime.phi - sv0Prime.phi;
-        
-        if (delPhi > Math.PI) {
-            delPhi -= 2 * Math.PI;
-        } else if (delPhi < -Math.PI) {
-            delPhi += 2 * Math.PI;
+        sv0 = new SphericalVector(p0);
+        sv1 = new SphericalVector(p1);
+    }
+
+    /**
+     * Helper method that interpolates between two angles a0 and a1
+     * ensuring that the shortest angular distance is used.
+     */
+    private double interpolateAngle(double a0, double a1, double t) {
+        double d = a1 - a0;
+        // Adjust if the difference is not the shortest route.
+        if (d > Math.PI) {
+            d -= 2 * Math.PI;
+        } else if (d < -Math.PI) {
+            d += 2 * Math.PI;
+        }
+        return a0 + t * d;
+    }
+
+    @Override
+    public Double getPoint(double t) {
+        // For face 0 and 1, the face is horizontal (normal in z).
+        if (face == 0 || face == 1) {
+            // Interpolate the azimuthal angle phi using the helper method.
+            double phi = interpolateAngle(sv0.phi, sv1.phi, t);
+            double zo = p0.z;  // constant
+            double rho = Math.sqrt(R * R - zo * zo);
+            double x = rho * Math.cos(phi);
+            double y = rho * Math.sin(phi);
+            return new Point3D.Double(x, y, zo);
         }
         
-        sv1Prime.phi = sv0Prime.phi + delPhi;
-    }
-
-	@Override
-	public Double getPoint(double t) {
-		SphericalVector sv = new SphericalVector(thetaPrime, phi0Prime + t * delPhi, radius);
-		sv.toCartesian(wp);
-		return rotateBack(wp);
-	}
-	
-	// rotate a point back to the original system
-	private Point3D.Double rotateBack(Point3D.Double p) {
-		// rotate the point
-		double x = rMatrixInv[0][0] * p.x + rMatrixInv[0][1] * p.y + rMatrixInv[0][2] * p.z;
-		double y = rMatrixInv[1][0] * p.x + rMatrixInv[1][1] * p.y + rMatrixInv[1][2] * p.z;
-		double z = rMatrixInv[2][0] * p.x + rMatrixInv[2][1] * p.y + rMatrixInv[2][2] * p.z;
-
-		return new Point3D.Double(x, y, z);
-	}
-	
-	/**
-	 * Get the arc length of the curve.
-	 * 
-	 * @return the arc length
-	 */
-	public double arcLength() {
-		return radius * Math.abs(delPhi);
-	}
-	
-	/**
-	 * Get the points of the curve as a polyline for jogle 3D drawing.
-	 * @param n the number of points
-	 * @return the polyline points
-	 */
-	public float[] getPolyline(int n) {
-		double dt = 1.0 / (n-1);
-		float[] points = new float[3 * n];
-		
-		for (int i = 0; i < n; i++) {
-			double t = i * dt;
-			Point3D.Double p = getPoint(t);
-			points[3 * i] = (float) p.x;
-			points[3 * i + 1] = (float) p.y;
-			points[3 * i + 2] = (float) p.z;
-		}
-		return points;
-	}
-
-	// rotate a point to the primed system where the normal is the z-axis
-	private Point3D.Double rotate(Point3D.Double p) {
-        //rotate the point
-        double x = rMatrix[0][0]*p.x + rMatrix[0][1]*p.y + rMatrix[0][2]*p.z;
-        double y = rMatrix[1][0]*p.x + rMatrix[1][1]*p.y + rMatrix[1][2]*p.z;
-        double z = rMatrix[2][0]*p.x + rMatrix[2][1]*p.y + rMatrix[2][2]*p.z;
+        // For face 4 and 5, the face has constant x (normal in x).
+        else if (face == 4 || face == 5) {
+            double xo = p0.x;  // constant x coordinate
+            double r = Math.sqrt(R * R - xo * xo);
+            // Compute the effective angular coordinate in the (y,z) plane.
+            double angle0 = Math.atan2(p0.z, p0.y);
+            double angle1 = Math.atan2(p1.z, p1.y);
+            double phi = interpolateAngle(angle0, angle1, t);
+            double y = r * Math.cos(phi);
+            double z = r * Math.sin(phi);
+            return new Point3D.Double(xo, y, z);
+        }
         
-        return new Point3D.Double(x, y, z);
+        // For face 2 and 3, the face has constant y (normal in y).
+        else if (face == 2 || face == 3) {
+            double yo = p0.y;  // constant y coordinate
+            double r = Math.sqrt(R * R - yo * yo);
+            // Compute the effective angular coordinate in the (x,z) plane.
+            double angle0 = Math.atan2(p0.z, p0.x);
+            double angle1 = Math.atan2(p1.z, p1.x);
+            double phi = interpolateAngle(angle0, angle1, t);
+            double x = r * Math.cos(phi);
+            double z = r * Math.sin(phi);
+            return new Point3D.Double(x, yo, z);
+        }
+        else {
+            System.err.println("Fatal error: invalid face number: " + face);
+            System.exit(1);
+        }
+        return null;  // unreachable, but needed for compilation.
     }
 
+    /**
+     * Get the points of the curve as a polyline for jOGL 3D drawing.
+     * @param n the number of points
+     * @return the polyline points
+     */
+    public float[] getPolyline(int n) {
+        double dt = 1.0 / (n - 1);
+        float[] points = new float[3 * n];
+        
+        for (int i = 0; i < n; i++) {
+            double t = i * dt;
+            Point3D.Double p = getPoint(t);
+            points[3 * i] = (float) p.x;
+            points[3 * i + 1] = (float) p.y;
+            points[3 * i + 2] = (float) p.z;
+        }
+        return points;
+    }
 }

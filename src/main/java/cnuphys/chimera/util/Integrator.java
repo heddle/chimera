@@ -5,6 +5,11 @@ import org.apache.commons.math3.analysis.UnivariateFunction;
 
 public class Integrator {
 	
+	public static double AreaContribution() {
+
+		return 0;
+	}
+	
 	
 	/**
 	 * Evaluate the area integral of the function r^2 sin(theta) dtheta dphi over the region
@@ -15,7 +20,7 @@ public class Integrator {
 	 * the case of x normal and y normal respectively
 	 * @return the contribution to the area integral
 	 */
-	public static double areaInegral(final double R, final double phi0, final double phi1, final double v0) {
+	public static double areaIntegral(final double R, final double phi0, final double phi1, final double v0) {
 		
 		final double rr = Math.hypot(phi1, v0);
 		

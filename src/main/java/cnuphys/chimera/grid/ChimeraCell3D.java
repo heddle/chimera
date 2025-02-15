@@ -15,6 +15,7 @@ import bCNU3D.Panel3D;
 import bCNU3D.Support3D;
 import cnuphys.bCNU.dialog.SimpleDialog;
 import cnuphys.chimera.curve.GeneralCurve;
+import cnuphys.chimera.curve.OldGeneralCurve;
 import cnuphys.chimera.util.PanelKeys;
 import cnuphys.chimera.util.Point3D;
 import item3D.Item3D;
@@ -206,7 +207,7 @@ public class ChimeraCell3D extends Item3D {
         gl.glEnable(GL2ES1.GL_CLIP_PLANE5);
 
         // Draw the sphere inside the cell with the "inside" color.
-        Color insideColor = new Color(196, 196, 196, 100);
+        Color insideColor = new Color(0, 0, 196, 100);
         Support3D.solidSphereShell(drawable, 0f, 0f, 0f, (float) (0.9999 * _radius), (float) _radius, 200, 200, insideColor);
 
         // Disable the clipping planes and restore state.
@@ -236,7 +237,7 @@ public class ChimeraCell3D extends Item3D {
 
 			GeneralCurve curve = new GeneralCurve(_cell, commonFace, p0, p1, _radius);
 			float[] points = curve.getPolyline(20);
-			Support3D.drawPolyLine(drawable, points, Color.black, 2f);
+			Support3D.drawPolyLine(drawable, points, Color.red, 2f);
 
 //
 //			double dt = 0.1;

@@ -48,6 +48,8 @@ public class Cell {
 	private CartesianGrid grid;
 	
 	private double radius;
+	
+	private double prepatchArea;
 
 	/**
 	 * Constructor for the Cell class.

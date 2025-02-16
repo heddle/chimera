@@ -1,9 +1,11 @@
 package cnuphys.chimera.grid;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import cnuphys.bCNU.util.Bits;
+import cnuphys.chimera.curve.GeneralCurve;
 import cnuphys.chimera.util.ChimeraPlane;
 import cnuphys.chimera.util.Point3D;
 
@@ -40,6 +42,9 @@ public class Cell {
 	// the edges that intersect the sphere
 	private int[] edgeIntersections;
 	private Edge[] edges;
+	
+	// The intersection boundary curves
+	private List<GeneralCurve> _boundaryCurves = new ArrayList<>();
 
 	// The intersection type
 	private int intersectionType = -1;
@@ -70,6 +75,18 @@ public class Cell {
 		edgeIntersections = GridSupport.findIntersectingEdges(inCorners);
 		intersectionType = getIntersectionType();
 		makeEdges(radius);
+		
+		if (edges != null) {
+	        int numEdges = edges.length;
+			for (int i = 0; i < numEdges; i++) {
+				int j = (i + 1) % numEdges;
+				int commonFace = edges[i].getCommonFace(edges[j]);
+                if (commonFace >= 0) {
+                    GeneralCurve curve = new GeneralCurve(this, commonFace, edges[i].getEndPoint(), edges[j].getStartPoint(), radius);
+                    _boundaryCurves.add(curve);
+                }
+			}
+		}
 	}
 
 	// make the edges that intersect the sphere
@@ -105,6 +122,9 @@ public class Cell {
 		return grid;
 	}
 	
+	public List<GeneralCurve> getBoundaryCurves() {
+		return _boundaryCurves;
+	}
 	
 	/**
 	 * Get the radius of the sphere

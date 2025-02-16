@@ -34,6 +34,8 @@ import item3D.Item3D;
  * the cell center is at the origin.
  */
 public class ChimeraCell3D extends Item3D {
+	
+	public static boolean monochrome = false;
 
     // Static dialog-related fields for display; only one dialog instance is used.
     private static Panel3D oneCellPanel3D;
@@ -50,7 +52,7 @@ public class ChimeraCell3D extends Item3D {
     boolean _showSphere;
     boolean _showClip;
     boolean _labelMarkers;
-    float _markerSize = 10f;
+    float _markerSize = 5f;
 
     /**
      * Constructs a ChimeraCell3D.
@@ -218,22 +220,30 @@ public class ChimeraCell3D extends Item3D {
         gl.glDisable(GL2ES1.GL_CLIP_PLANE4);
         gl.glDisable(GL2ES1.GL_CLIP_PLANE5);
         gl.glPopAttrib();
+        
+		List<GeneralCurve> curves = _cell.getBoundaryCurves();
+		for (GeneralCurve curve : curves) {
+			float[] points = curve.getPolyline(20);
+			Support3D.drawPolyLine(drawable, points, Color.green, 3f);
+		}
 
         Edge[] edges = _cell.getEdges();
         int numEdges = edges.length;
+        
+        
 		for (int i = 0; i < numEdges; i++) {
 			int j = (i + 1) % numEdges;
 
 			int commonFace = edges[i].getCommonFace(edges[j]);
-			System.err.println("Common face: " + commonFace);
+//			System.err.println("Common face: " + commonFace);
 
 			Point3D.Double p0 = edges[i].getIntersection();
 			Point3D.Double p1 = edges[j].getIntersection();
 
-			double[] norm1 = _cell.getUnitNormal(commonFace);
-			Point3D.Double norm2 = _cell.getPlane(commonFace).getNormal();
-			System.err.println("norm1: " + norm1[0] + " " + norm1[1] + " " + norm1[2]);
-			System.err.println("norm2: " + norm2.x + " " + norm2.y + " " + norm2.z);
+//			double[] norm1 = _cell.getUnitNormal(commonFace);
+//			Point3D.Double norm2 = _cell.getPlane(commonFace).getNormal();
+//			System.err.println("norm1: " + norm1[0] + " " + norm1[1] + " " + norm1[2]);
+//			System.err.println("norm2: " + norm2.x + " " + norm2.y + " " + norm2.z);
 
 			GeneralCurve curve = new GeneralCurve(_cell, commonFace, p0, p1, _radius);
 			float[] points = curve.getPolyline(20);
@@ -318,7 +328,7 @@ public class ChimeraCell3D extends Item3D {
                 @Override
                 public void createInitialItems() {
                     String[] labels = { "X", "Y", "Z" };
-                    cell3D = new ChimeraCell3D(this, cell, true, true, true, true, 10f);
+                    cell3D = new ChimeraCell3D(this, cell, true, true, true, true, 5f);
                     addItem(cell3D);
                  }
 

@@ -20,7 +20,7 @@ import cnuphys.bCNU.feedback.IFeedbackProvider;
 import cnuphys.bCNU.graphics.container.IContainer;
 import cnuphys.bCNU.util.PropertySupport;
 import cnuphys.chimera.grid.CartesianGrid;
-import cnuphys.chimera.grid.ChimeraGrid;
+import cnuphys.chimera.grid.MosaicGrid;
 import cnuphys.chimera.grid.SphericalGrid;
 import cnuphys.chimera.grid.mapping.EProjection;
 import cnuphys.chimera.grid.mapping.MapProjectionMenu;
@@ -75,7 +75,7 @@ public class MonteCarloView2D extends MapView2D implements IFeedbackProvider {
 		menuBar.add(_projectionMenu);
 
 		//the default map projection
-		_projection = new MollweideProjection(Chimera.getInstance().getRadius());
+		_projection = new MollweideProjection(Mosaic.getInstance().getRadius());
 
 		setFeedback();
 
@@ -129,7 +129,7 @@ public class MonteCarloView2D extends MapView2D implements IFeedbackProvider {
 
 	//draw the Monte Carlo points
 	private void drawMonteCarloPoints(Graphics g, IContainer container) {
-		List<MonteCarloPoint> points = Chimera.getInstance().getMonteCarloPoints();
+		List<MonteCarloPoint> points = Mosaic.getInstance().getMonteCarloPoints();
 
 		Point2D.Double xy = new Point2D.Double();
 		Point2D.Double latLon = new Point2D.Double();
@@ -155,7 +155,7 @@ public class MonteCarloView2D extends MapView2D implements IFeedbackProvider {
 			List<String> feedbackStrings) {
 
 		boolean onMap = _projection.isPointOnMap(xy);
-		int patchCount= Chimera.getInstance().getMonteCarloSeenSet().size();
+		int patchCount= Mosaic.getInstance().getMonteCarloSeenSet().size();
 
 
 		String projStr = String.format("projection: %s", _projection.name());
@@ -179,11 +179,11 @@ public class MonteCarloView2D extends MapView2D implements IFeedbackProvider {
 		double lon = Math.toDegrees(latLon.x);
 		double theta = 90 - lat;
 		double phi = lon;
-		ThetaPhi tp = new ThetaPhi(Chimera.getInstance().getRadius(),
+		ThetaPhi tp = new ThetaPhi(Mosaic.getInstance().getRadius(),
 				Math.PI/2 - latLon.y, latLon.x);
 		Point3D.Double cartesian = tp.toCartesian();
 
-		ChimeraGrid grid = Chimera.getInstance().getChimeraGrid();
+		MosaicGrid grid = Mosaic.getInstance().getMosaicGrid();
 		CartesianGrid cgrid = grid.getCartesianGrid();
 		SphericalGrid sgrid = grid.getSphericalGrid();
 		int cindices[] = new int[3];

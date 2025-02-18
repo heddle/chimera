@@ -9,7 +9,7 @@ package cnuphys.chimera.util;
  * a rotation matrix (rmat) used to align the plane's normal with the z-axis.
  * </p>
  */
-public class ChimeraPlane {
+public class MosaicPlane {
 
     // Constants used for tolerance and limiting values.
     private static final double TOL = 1e-8;
@@ -26,7 +26,7 @@ public class ChimeraPlane {
     public Point3D.Double p2 = new Point3D.Double();
 
     // The rotation matrix (or rotation representation) used to align the normal with the z-axis.
-    public ChimeraRotation rmat = new ChimeraRotation();
+    public MosaicRotation rmat = new MosaicRotation();
 
     /**
      * Constructs a plane using three points.
@@ -35,7 +35,7 @@ public class ChimeraPlane {
      * @param p1 A second point of the plane.
      * @param p2 A third point of the plane.
      */
-    public ChimeraPlane(Point3D.Double p0, Point3D.Double p1, Point3D.Double p2) {
+    public MosaicPlane(Point3D.Double p0, Point3D.Double p1, Point3D.Double p2) {
         setPlane(p0, p1, p2);
     }
  
@@ -101,7 +101,7 @@ public class ChimeraPlane {
         }
         
         // Assumes ChimeraRotation.rotationFromAngles sets up the rotation matrix appropriately.
-        ChimeraRotation.rotationFromAngles(rmat, phi, ChimeraRotation.CR_Z_AXIS, theta, ChimeraRotation.CR_Y_AXIS);
+        MosaicRotation.rotationFromAngles(rmat, phi, MosaicRotation.CR_Z_AXIS, theta, MosaicRotation.CR_Y_AXIS);
     }
 
     /**
@@ -119,8 +119,8 @@ public class ChimeraPlane {
      */
     public double[][][] getRotationMatrices() {
         // Copy the matrices so that the internal state is not exposed.
-        double[][] rotMat = ChimeraRotation.copyMatrix(rmat.matrix);
-        double[][] rotMatInv = ChimeraRotation.copyMatrix(rmat.invMatrix);
+        double[][] rotMat = MosaicRotation.copyMatrix(rmat.matrix);
+        double[][] rotMatInv = MosaicRotation.copyMatrix(rmat.invMatrix);
         return new double[][][] { rotMat, rotMatInv };
     }
 

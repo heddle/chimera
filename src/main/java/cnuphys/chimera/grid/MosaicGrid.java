@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cnuphys.bCNU.util.Bits;
-import cnuphys.chimera.util.ChimeraPlane;
+import cnuphys.chimera.util.MosaicPlane;
 import cnuphys.chimera.util.ClosestFacePoint;
 import cnuphys.chimera.util.Point3D;
 
@@ -14,7 +14,7 @@ import cnuphys.chimera.util.Point3D;
  * This class identifies and stores the indices of Cartesian grid cells that intersect
  * the sphere defined by the SphericalGrid.
  */
-public class ChimeraGrid {
+public class MosaicGrid {
     
     private final CartesianGrid cartesianGrid;
     private final SphericalGrid sphericalGrid;
@@ -22,12 +22,12 @@ public class ChimeraGrid {
     //the list of all intersecting cells
     private List<Cell> intersectingCells = new ArrayList<>();
 
-    public ChimeraGrid(CartesianGrid cartesianGrid, SphericalGrid sphericalGrid) {
+    public MosaicGrid(CartesianGrid cartesianGrid, SphericalGrid sphericalGrid) {
         this.cartesianGrid = new CartesianGrid(cartesianGrid); 
         this.sphericalGrid = new SphericalGrid(sphericalGrid);
     }
 
-    public ChimeraGrid(ChimeraGrid other) {
+    public MosaicGrid(MosaicGrid other) {
         this.cartesianGrid = new CartesianGrid(other.cartesianGrid);
         this.sphericalGrid = new SphericalGrid(other.sphericalGrid);
         this.intersectingCells = new ArrayList<>(other.intersectingCells);
@@ -96,10 +96,12 @@ public class ChimeraGrid {
                         intersectingCells.add(new Cell(cartesianGrid, ix, iy, iz, cornerBits, radius));
                     }
                     else if (!hasInside) {
-						int kissFace = kissTest(cell, radius);
+						Point3D.Double closestPoint = new Point3D.Double();
+						int kissFace = kissTest(cell, radius, closestPoint);
 						if (kissFace >= 0) {
-							intersectingCells.add(new Cell(cartesianGrid, ix, iy, iz, cornerBits, radius));
-							System.out.println("  Index:  " + (intersectingCells.size()-1));
+							Cell kissCell = new Cell(cartesianGrid, ix, iy, iz, cornerBits, radius);
+							kissCell.setClosestPoint(closestPoint);
+							intersectingCells.add(kissCell);
 						}
 					}
 
@@ -111,7 +113,7 @@ public class ChimeraGrid {
     }
 
     //do the hideous kiss test (this is the test devised by chatGPT)
-    private int kissTest(double[][] corners, double sphereRadius) {
+    private int kissTest(double[][] corners, double sphereRadius, Point3D.Double closestPoint) {
     	
     	//get the closest face
     	int closestFace = -1;
@@ -126,19 +128,15 @@ public class ChimeraGrid {
 
 		double[][] faceCorners = GridSupport.getFaceCorners(corners, closestFace);
 
-		if (ClosestFacePoint.arePointsCoplanar(faceCorners, ClosestFacePoint.TOL)) {
-			double[] closePoint = ClosestFacePoint.closestPointOnFaceToOrigin(faceCorners);
-			double dist = Math.sqrt(
-					closePoint[0] * closePoint[0] + closePoint[1] * closePoint[1] + closePoint[2] * closePoint[2]);
-			if (dist < sphereRadius) {
-				return closestFace;
-			}
-		} else {
-			System.err.println("Face not coplanar!");
-			System.exit(-1);
+		double[] closePoint = ClosestFacePoint.closestPointOnFaceToOrigin(faceCorners, ClosestFacePoint.TOL);
+		double dist = Math
+				.sqrt(closePoint[0] * closePoint[0] + closePoint[1] * closePoint[1] + closePoint[2] * closePoint[2]);
+		if (dist < sphereRadius) {
+			closestPoint.setLocation(closePoint[0], closePoint[1], closePoint[2]);
+			return closestFace;
 		}
-   	
-    	return -1;
+
+		return -1;
     }
 
 

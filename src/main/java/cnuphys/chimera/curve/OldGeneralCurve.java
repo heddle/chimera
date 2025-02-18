@@ -3,7 +3,7 @@ package cnuphys.chimera.curve;
 import java.awt.geom.Point2D;
 
 import cnuphys.chimera.grid.Cell;
-import cnuphys.chimera.util.ChimeraPlane;
+import cnuphys.chimera.util.MosaicPlane;
 import cnuphys.chimera.util.Point3D;
 import cnuphys.chimera.util.Point3D.Double;
 import cnuphys.chimera.util.SphericalVector;
@@ -25,7 +25,7 @@ public class OldGeneralCurve implements Curve {
 	public OldGeneralCurve(Cell cell, int face, Point3D.Double p0, Point3D.Double p1, double R) {
 		radius = R;
 		//get the rotation matrices that rotate the normal to the z-axis
-        ChimeraPlane plane = cell.getPlane(face);
+        MosaicPlane plane = cell.getPlane(face);
         double[][][] matrices = plane.getRotationMatrices();
         
         rMatrix = matrices[0];

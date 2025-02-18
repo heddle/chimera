@@ -8,7 +8,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
-import cnuphys.chimera.frame.Chimera;
+import cnuphys.chimera.frame.Mosaic;
 import cnuphys.chimera.grid.Fiveplet;
 
 public class MonteCarlo {
@@ -24,8 +24,8 @@ public class MonteCarlo {
 	public static void runMonteCarlo(final double radius, int numPoints, boolean clear, JProgressBar progressBar) {
 		// Disable the button while running
 		progressBar.setValue(0);
-		List<MonteCarloPoint> points = Chimera.getInstance().getMonteCarloPoints();
-		HashSet<Fiveplet> seenTuples = Chimera.getInstance().getMonteCarloSeenSet();
+		List<MonteCarloPoint> points = Mosaic.getInstance().getMonteCarloPoints();
+		HashSet<Fiveplet> seenTuples = Mosaic.getInstance().getMonteCarloSeenSet();
 		if (clear) {
 			points.clear();
 		}
@@ -62,11 +62,11 @@ public class MonteCarlo {
 			protected void done() {
 					try {
 					List<MonteCarloPoint> points = get(); // Get the result
-					JOptionPane.showMessageDialog(Chimera.getInstance(), "Simulation complete with " + points.size() + " points.",
+					JOptionPane.showMessageDialog(Mosaic.getInstance(), "Simulation complete with " + points.size() + " points.",
 							"Done", JOptionPane.INFORMATION_MESSAGE);
-					Chimera.refresh();
+					Mosaic.refresh();
 				} catch (InterruptedException | ExecutionException e) {
-					JOptionPane.showMessageDialog(Chimera.getInstance(), "Error: " + e.getMessage(), "Error",
+					JOptionPane.showMessageDialog(Mosaic.getInstance(), "Error: " + e.getMessage(), "Error",
 							JOptionPane.ERROR_MESSAGE);
 				}
 			}

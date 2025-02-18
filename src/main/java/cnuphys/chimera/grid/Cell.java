@@ -5,8 +5,14 @@ import java.util.List;
 import java.util.Objects;
 
 import cnuphys.bCNU.util.Bits;
+import cnuphys.chimera.curve.CompositeSphericalLoop;
 import cnuphys.chimera.curve.GeneralCurve;
-import cnuphys.chimera.util.ChimeraPlane;
+import cnuphys.chimera.curve.ISegment;
+import cnuphys.chimera.curve.PoleEnclosureChecker;
+import cnuphys.chimera.curve.SphericalAreaCalculator;
+import cnuphys.chimera.curve.SphericalLoopUtils;
+import cnuphys.chimera.util.MosaicPlane;
+import cnuphys.chimera.util.Integrator;
 import cnuphys.chimera.util.Point3D;
 
 /**
@@ -25,6 +31,8 @@ public class Cell {
 	public static final int skewCut = 7;
 	public static final int kiss = 8;
 	
+	public static final int polar = 99; //polar is an attribute, not another type
+		
 	public static int allTypes = -1;
 
 	// corresponding to the intersection types
@@ -44,7 +52,7 @@ public class Cell {
 	private Edge[] edges;
 	
 	// The intersection boundary curves
-	private List<GeneralCurve> _boundaryCurves = new ArrayList<>();
+	private List<GeneralCurve> _boundaryCurves = new ArrayList<GeneralCurve>();
 
 	// The intersection type
 	private int intersectionType = -1;
@@ -52,11 +60,18 @@ public class Cell {
 	// The Cartesian grid
 	private CartesianGrid grid;
 	
+	//sphere radius
 	private double radius;
 	
-	private double prepatchArea;
-
-	/**
+	//pole enclosure flag
+	private int poleEnclosed = 0;
+	
+	//closest point (just inside) if this is a kiss
+	public Point3D.Double closestPoint;
+	
+	private static double totalArea = 0;
+	
+		/**
 	 * Constructor for the Cell class.
 	 *
 	 * @param nx        index on the x grid.
@@ -82,11 +97,57 @@ public class Cell {
 				int j = (i + 1) % numEdges;
 				int commonFace = edges[i].getCommonFace(edges[j]);
                 if (commonFace >= 0) {
-                    GeneralCurve curve = new GeneralCurve(this, commonFace, edges[i].getEndPoint(), edges[j].getStartPoint(), radius);
+                    GeneralCurve curve = new GeneralCurve(this, commonFace, edges[i].getIntersection(), edges[j].getIntersection(), radius);
                     _boundaryCurves.add(curve);
                 }
+			} //i loop
+
+			//pole enclosed?
+			poleEnclosed = PoleEnclosureChecker.checkPoleEnclosure(_boundaryCurves);
+			if (poleEnclosed != 0) {
+				System.err.println("Pole enclosed type " + poleEnclosed + " for cell (" + nx + ", " + ny + ", " + nz + ")");
 			}
+
+		} //edges not null
+		
+		// get area
+		if (_boundaryCurves.size() > 0) {
+			try {
+				double area = SphericalAreaCalculator.computeEnclosedArea(_boundaryCurves, radius);
+				totalArea += area;
+				System.out.println("Area: " + area + " Total Area: " + totalArea);
+			} catch (Exception e) {
+				System.err.println("Bad area for cell " + this);
+				System.exit(1);
+			}
+
 		}
+	}
+	
+	/**
+	 * Get the closest point (just inside) if this is a kiss
+	 * @return the closest point (just inside) if this is a kiss,
+	 * othewise null.
+	 */
+	public Point3D.Double getClosestPoint() {
+		return closestPoint;
+	}
+	
+	/**
+	 * Get the pole enclosure flag
+	 * 
+	 * @return the pole enclosure flag
+	 */
+	public int getPoleEnclosed() {
+		return poleEnclosed;
+	}
+	
+	/**
+	 * Set the closest point (it means this cell is a kiss)
+	 * @param p the closest point
+	 */
+	public void setClosestPoint(Point3D.Double p) {
+		closestPoint = new Point3D.Double(p.x, p.y, p.z);
 	}
 
 	// make the edges that intersect the sphere
@@ -319,7 +380,7 @@ public class Cell {
      * @return the ChimeraPlane corresponding to that face.
      * @throws IllegalArgumentException if the face index is invalid.
      */
-    public ChimeraPlane getPlane(int face) {
+    public MosaicPlane getPlane(int face) {
         // Validate face index.
         if (face < 0 || face > 5) {
             throw new IllegalArgumentException("Face index must be between 0 and 5: " + face);
@@ -344,7 +405,7 @@ public class Cell {
                                                  cellCorners[faceIndices[2]][2]);
         
         // Create and return a new ChimeraPlane defined by these three points.
-        return new ChimeraPlane(p0, p1, p2);
+        return new MosaicPlane(p0, p1, p2);
     }
 
 	@Override
@@ -362,11 +423,6 @@ public class Cell {
 		return Objects.hash(nx, ny, nz);
 	}
 
-	@Override
-	public String toString() {
-		return String.format("[nx = %d, ny = %d, nz = %d]", nx, ny, nz);
-	}
-	
 	/**
 	 * Get the center of the cell
 	 * 
@@ -384,6 +440,11 @@ public class Cell {
 		center[1] /= 8.0;
 		center[2] /= 8.0;
 		return center;
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("Cell (%d, %d, %d) %s", nx, ny, nz, getIntersectionTypeString());
 	}
 
 	/**

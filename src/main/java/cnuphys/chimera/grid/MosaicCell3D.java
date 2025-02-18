@@ -16,6 +16,7 @@ import bCNU3D.Support3D;
 import cnuphys.bCNU.dialog.SimpleDialog;
 import cnuphys.chimera.curve.GeneralCurve;
 import cnuphys.chimera.curve.OldGeneralCurve;
+import cnuphys.chimera.frame.Mosaic;
 import cnuphys.chimera.util.PanelKeys;
 import cnuphys.chimera.util.Point3D;
 import item3D.Item3D;
@@ -33,16 +34,14 @@ import item3D.Item3D;
  * averaging them to obtain the center, and then translating the drawing so that
  * the cell center is at the origin.
  */
-public class ChimeraCell3D extends Item3D {
+public class MosaicCell3D extends Item3D {
 	
-	public static boolean monochrome = false;
-
     // Static dialog-related fields for display; only one dialog instance is used.
     private static Panel3D oneCellPanel3D;
     private static Panel3D cellListPanel3D;
     private static SimpleDialog oneCellDialog;
     private static SimpleDialog cellListDialog;
-    private static ChimeraCell3D cell3D;
+    private static MosaicCell3D cell3D;
 
     private Cell _cell;
     // The eight cell corners (each is a double[3]: {x, y, z})
@@ -60,7 +59,7 @@ public class ChimeraCell3D extends Item3D {
      * @param panel the Panel3D on which to draw this item.
      * @param cell  the Cell to be displayed.
      */
-	public ChimeraCell3D(Panel3D panel, Cell cell, boolean translate, boolean showSphere, boolean showClip,
+	public MosaicCell3D(Panel3D panel, Cell cell, boolean translate, boolean showSphere, boolean showClip,
 			boolean labelMarkers, float markerSize) {
         super(panel);
         _translate = translate;
@@ -124,43 +123,46 @@ public class ChimeraCell3D extends Item3D {
 			clipSphere(drawable, bounds, _showClip);
 		}
 
-        // Draw markers at intersections along the cell's edges.
-        Edge[] edges = _cell.getEdges();
-
-        if (edges != null) {
-        	int index = 0;
-            for (Edge edge : edges) {
-                Point3D.Double ip = edge.getIntersection();
+		
+		int intType = _cell.getIntersectionType();
+		
+		if (intType == Cell.kiss) {
+			Point3D.Double kissPoint = _cell.getClosestPoint();
+			Support3D.drawPoint(drawable, kissPoint.x, kissPoint.y, kissPoint.z, Color.green, 10f, true);
+		} else {
+			Edge[] edges = _cell.getEdges();
+			int index = 0;
+			for (Edge edge : edges) {
+				Point3D.Double ip = edge.getIntersection();
 				if (ip != null) {
 					Color markerColor = Color.black;
 					if (_labelMarkers) {
-						Support3D.drawMarker(drawable, (float) ip.x, (float) ip.y, (float) ip.z, markerColor, _markerSize,
-								true, "" + index, .3f, Color.black);
-					}
-					else {
+						Support3D.drawMarker(drawable, (float) ip.x, (float) ip.y, (float) ip.z, markerColor,
+								_markerSize, true, "" + index, .3f, Color.black);
+					} else {
 						Support3D.drawPoint(drawable, (float) ip.x, (float) ip.y, (float) ip.z, markerColor,
 								_markerSize, true);
 					}
 				}
-                index++;
-            }
-        }
+				index++;
+			}
 
-        // --- New Code: Draw markers on cell corners that are inside the sphere.
-        // Use the cell's bit mask for inside corners.
-        // The bit mask encodes (from bit 0 to bit 7) which of the 8 corners are inside.
-        // Since we already translated so that the center is at (0,0,0),
-        // we simply subtract the center from each corner to get the relative position.
-        for (int i = 0; i < _corners.length; i++) {
-            // Check if corner 'i' is inside according to the bit mask.
-            if (( _cell.getInsideCorners() & (1 << i)) != 0) {
-                double rx = _corners[i][0];
-                double ry = _corners[i][1];
-                double rz = _corners[i][2];
+			// Draw markers on cell corners that are inside the sphere.
+			// Use the cell's bit mask for inside corners.
+			// The bit mask encodes (from bit 0 to bit 7) which of the 8 corners are inside.
+			// Since we already translated so that the center is at (0,0,0),
+			// we simply subtract the center from each corner to get the relative position.
+			for (int i = 0; i < _corners.length; i++) {
+				// Check if corner 'i' is inside according to the bit mask.
+				if ((_cell.getInsideCorners() & (1 << i)) != 0) {
+					double rx = _corners[i][0];
+					double ry = _corners[i][1];
+					double rz = _corners[i][2];
 
-                Support3D.drawPoint(drawable, (float) rx, (float) ry, (float) rz, Color.cyan, _markerSize);
-            }
-        }
+					Support3D.drawPoint(drawable, (float) rx, (float) ry, (float) rz, Color.cyan, _markerSize);
+				}
+			}
+		}
 
         gl.glPopMatrix();
     }
@@ -221,44 +223,46 @@ public class ChimeraCell3D extends Item3D {
         gl.glDisable(GL2ES1.GL_CLIP_PLANE5);
         gl.glPopAttrib();
         
+        Color curveColor = Mosaic.monochrome ? Color.black : Color.red;
+        
 		List<GeneralCurve> curves = _cell.getBoundaryCurves();
 		for (GeneralCurve curve : curves) {
-			float[] points = curve.getPolyline(20);
-			Support3D.drawPolyLine(drawable, points, Color.green, 3f);
+			float[] points = curve.getPolyline(50);
+			Support3D.drawPolyLine(drawable, points, curveColor, 3f);
 		}
 
-        Edge[] edges = _cell.getEdges();
-        int numEdges = edges.length;
-        
-        
-		for (int i = 0; i < numEdges; i++) {
-			int j = (i + 1) % numEdges;
-
-			int commonFace = edges[i].getCommonFace(edges[j]);
-//			System.err.println("Common face: " + commonFace);
-
-			Point3D.Double p0 = edges[i].getIntersection();
-			Point3D.Double p1 = edges[j].getIntersection();
-
-//			double[] norm1 = _cell.getUnitNormal(commonFace);
-//			Point3D.Double norm2 = _cell.getPlane(commonFace).getNormal();
-//			System.err.println("norm1: " + norm1[0] + " " + norm1[1] + " " + norm1[2]);
-//			System.err.println("norm2: " + norm2.x + " " + norm2.y + " " + norm2.z);
-
-			GeneralCurve curve = new GeneralCurve(_cell, commonFace, p0, p1, _radius);
-			float[] points = curve.getPolyline(20);
-			Support3D.drawPolyLine(drawable, points, Color.red, 2f);
-
+//        Edge[] edges = _cell.getEdges();
+//        int numEdges = edges.length;
+//        
+//        
+//		for (int i = 0; i < numEdges; i++) {
+//			int j = (i + 1) % numEdges;
 //
-//			double dt = 0.1;
-//			for (double t = 0; t <= 1; t += dt) {
-//				Point3D.Double p = curve.getPoint(t);
-//				System.out.println(p.length()/_radius);
-//				Support3D.drawPoint(drawable, (float) p.x, (float) p.y, (float) p.z, Color.yellow, 5f);
-//			}
-
-//			Support3D.drawLine(drawable, (float) p0.x, (float) p0.y, (float) p0.z, (float) p1.x, (float) p1.y, (float) p1.z, Color.yellow, 2f);
-		}
+//			int commonFace = edges[i].getCommonFace(edges[j]);
+////			System.err.println("Common face: " + commonFace);
+//
+//			Point3D.Double p0 = edges[i].getIntersection();
+//			Point3D.Double p1 = edges[j].getIntersection();
+//
+////			double[] norm1 = _cell.getUnitNormal(commonFace);
+////			Point3D.Double norm2 = _cell.getPlane(commonFace).getNormal();
+////			System.err.println("norm1: " + norm1[0] + " " + norm1[1] + " " + norm1[2]);
+////			System.err.println("norm2: " + norm2.x + " " + norm2.y + " " + norm2.z);
+//
+//			GeneralCurve curve = new GeneralCurve(_cell, commonFace, p0, p1, _radius);
+//			float[] points = curve.getPolyline(20);
+//			Support3D.drawPolyLine(drawable, points, Color.red, 2f);
+//
+////
+////			double dt = 0.1;
+////			for (double t = 0; t <= 1; t += dt) {
+////				Point3D.Double p = curve.getPoint(t);
+////				System.out.println(p.length()/_radius);
+////				Support3D.drawPoint(drawable, (float) p.x, (float) p.y, (float) p.z, Color.yellow, 5f);
+////			}
+//
+////			Support3D.drawLine(drawable, (float) p0.x, (float) p0.y, (float) p0.z, (float) p1.x, (float) p1.y, (float) p1.z, Color.yellow, 2f);
+//		}
 
     }
 
@@ -328,7 +332,7 @@ public class ChimeraCell3D extends Item3D {
                 @Override
                 public void createInitialItems() {
                     String[] labels = { "X", "Y", "Z" };
-                    cell3D = new ChimeraCell3D(this, cell, true, true, true, true, 5f);
+                    cell3D = new MosaicCell3D(this, cell, true, true, true, true, 5f);
                     addItem(cell3D);
                  }
 
@@ -385,7 +389,7 @@ public class ChimeraCell3D extends Item3D {
      * @param cells
      * @param grid
      */
-	public static void displayCellList(List<Cell> cells, ChimeraGrid grid, int showType) {
+	public static void displayCellList(List<Cell> cells, MosaicGrid grid, int showType) {
 
 		if (cellListDialog != null) {
 			cellListDialog.dispose();
@@ -411,9 +415,10 @@ public class ChimeraCell3D extends Item3D {
 
 				for (Cell cell : cells) {
 					int type = cell.getIntersectionType();
-					boolean show = (showType == Cell.allTypes || type == showType);
+					boolean show = (showType == Cell.allTypes || type == showType || (showType == Cell.polar && (cell.getPoleEnclosed() != 0)));
 					if (show) {
-						ChimeraCell3D cell3D = new ChimeraCell3D(this, cell, false, first, false, false, 3f);
+						System.out.println("Showing cell: " + cell);
+						MosaicCell3D cell3D = new MosaicCell3D(this, cell, false, first, false, false, 3f);
 						first = false;
 						addItem(cell3D);
 					}
@@ -425,13 +430,14 @@ public class ChimeraCell3D extends Item3D {
                 return new Dimension(800, 800);
             }
         };
-        PanelKeys.addKeyListener(cellListPanel3D,delta, delta, delta);
+		PanelKeys.addKeyListener(cellListPanel3D, delta, delta, delta);
 
-        String title = "Cell List [;";
+		String title = "Cell List [;";
 		if (showType == Cell.allTypes) {
 			title += "All Types]";
-		}
-		else {
+		} else if (showType == Cell.polar) {
+			title += "Polar Cells + Pole]";
+		} else {
 			title += Cell.intersectionTypes[showType] + "]";
 		}
 

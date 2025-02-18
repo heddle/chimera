@@ -341,7 +341,7 @@ public class CellTablePanel extends JPanel {
 
         // Optionally, set up callbacks.
         cellTablePanel.setCellClickListener(cell -> {
-            ChimeraCell3D.displayCell(cell);
+            MosaicCell3D.displayCell(cell);
         });
         cellTablePanel.setCellDoubleClickListener(cell -> {
             // displayCell(cell);

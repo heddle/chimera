@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class TestGrid {
 
-	public static ChimeraGrid primaryTestGrid() {
+	public static MosaicGrid primaryTestGrid() {
 //		double[] xgrid = { -46.8391, -43.8807, -41.1116, -38.5197, -36.0938, -33.8233, -31.6980, -29.7089, -27.8470,
 //				-26.1044, -24.4733, -22.9467, -21.5178, -20.1803, -18.9285, -17.7568, -16.6602, -15.6337, -14.6729,
 //				-13.7737, -12.9320, -12.1443, -11.4069, -10.7167, -10.0708, -9.4662, -8.9003, -8.3706, -7.8748, -7.4108,
@@ -44,7 +44,7 @@ public class TestGrid {
 		
 		double[] ygrid = {
 				-5.6667, -5.3333, -5.0000, -4.6667, -4.3333, -4.0000, -3.6667, -3.3333, -3.0000, -2.6667, -2.3333,
-				-2.0000, -1.6667, -1.3333, -1.0000, -0.6667, -0.3333, 0.0000, 0.3333, 0.6667, 1.0000, 1.3333, 1.6667,
+				-2.0000, -1.6667, -1.3333, -1.0000, -0.6667, -0.3333, 0.00001, 0.3333, 0.6667, 1.0000, 1.3333, 1.6667,
 				2.0000, 2.3333, 2.6667, 3.0000, 3.3333, 3.6667, 4.0000, 4.3333, 4.6667, 5.0000, 5.3333, 5.6803};
 
 		
@@ -72,7 +72,7 @@ public class TestGrid {
 		CartesianGrid cartGrid = new CartesianGrid(xgrid, ygrid, zgrid, 0, 0, 0);
 		SphericalGrid sphereGrid = new SphericalGrid(thetagrid, phigrid, radius, alpha, beta);
 		
-		return new ChimeraGrid(cartGrid, sphereGrid);
+		return new MosaicGrid(cartGrid, sphereGrid);
 
 	}
 }

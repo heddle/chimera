@@ -9,8 +9,8 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 import cnuphys.bCNU.graphics.container.IContainer;
-import cnuphys.chimera.frame.Chimera;
-import cnuphys.chimera.grid.ChimeraGrid;
+import cnuphys.chimera.frame.Mosaic;
+import cnuphys.chimera.grid.MosaicGrid;
 import cnuphys.chimera.grid.Grid1D;
 import cnuphys.chimera.grid.SphericalGrid;
 
@@ -91,7 +91,7 @@ public class OrthographicProjection implements IMapProjection {
     @Override
     public void drawMapOutline(Graphics g, IContainer container) {
 		Graphics2D g2 = (Graphics2D) g;
-		ChimeraGrid grid = Chimera.getInstance().getChimeraGrid();
+		MosaicGrid grid = Mosaic.getInstance().getMosaicGrid();
 		SphericalGrid sgrid = grid.getSphericalGrid();
 		Grid1D thetaGrid = sgrid.getThetaGrid();
 		Grid1D phiGrid = sgrid.getPhiGrid();

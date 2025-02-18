@@ -10,15 +10,15 @@ import javax.swing.JProgressBar;
 import cnuphys.bCNU.dialog.SimpleDialog;
 import cnuphys.chimera.dialog.LabeledTextField;
 import cnuphys.chimera.dialog.VerticalPanel;
-import cnuphys.chimera.frame.Chimera;
-import cnuphys.chimera.grid.ChimeraGrid;
+import cnuphys.chimera.frame.Mosaic;
+import cnuphys.chimera.grid.MosaicGrid;
 
 public class MonteCarloDialog extends SimpleDialog {
 
 	private static final String RUN = "Run";
 
     //the overall grid
-    private ChimeraGrid grid;
+    private MosaicGrid grid;
 
     //the clear check box
     private JCheckBox _clearCheckBox;
@@ -30,7 +30,7 @@ public class MonteCarloDialog extends SimpleDialog {
     private JProgressBar _progressBar;
 
 
-    public MonteCarloDialog(Frame owner, ChimeraGrid grid) {
+    public MonteCarloDialog(Frame owner, MosaicGrid grid) {
         super("Monte Carlo", false, RUN, "Cancel"); // Modeless dialog
         this.grid = grid;
 
@@ -64,7 +64,7 @@ public class MonteCarloDialog extends SimpleDialog {
 	public void handleCommand(String command) {
 		reason = command;
 		if (command.equals(RUN)) {
-	    	MonteCarlo.runMonteCarlo(Chimera.getInstance().getRadius(),
+	    	MonteCarlo.runMonteCarlo(Mosaic.getInstance().getRadius(),
 	    			getNPoints(), clearExistingData(), _progressBar);
 		}
 		else {

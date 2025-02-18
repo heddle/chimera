@@ -3,8 +3,8 @@ package cnuphys.chimera.monteCarlo;
 import java.awt.Color;
 import java.util.Random;
 
-import cnuphys.chimera.frame.Chimera;
-import cnuphys.chimera.grid.ChimeraGrid;
+import cnuphys.chimera.frame.Mosaic;
+import cnuphys.chimera.grid.MosaicGrid;
 import cnuphys.chimera.grid.Fiveplet;
 import cnuphys.chimera.util.Point3D;
 import cnuphys.chimera.util.ThetaPhi;
@@ -43,7 +43,7 @@ public class MonteCarloPoint {
 		ThetaPhi.setRandomThetaPhi(random, thetaPhi);
 		Point3D.Double cartesian = thetaPhi.toCartesian();
 
-		ChimeraGrid grid = Chimera.getInstance().getChimeraGrid();
+		MosaicGrid grid = Mosaic.getInstance().getMosaicGrid();
 
 		int sIndices[] = new int[2];
 		int cIndices[] = new int[3];

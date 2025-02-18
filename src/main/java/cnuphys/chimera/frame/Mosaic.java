@@ -8,9 +8,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
 
 import cnuphys.bCNU.application.BaseMDIApplication;
@@ -21,20 +23,24 @@ import cnuphys.bCNU.util.FileUtilities;
 import cnuphys.bCNU.util.PropertySupport;
 import cnuphys.chimera.grid.Cell;
 import cnuphys.chimera.grid.CellTablePanel;
-import cnuphys.chimera.grid.ChimeraCell3D;
-import cnuphys.chimera.grid.ChimeraGrid;
-import cnuphys.chimera.grid.ChimeraGridPanel3D;
+import cnuphys.chimera.grid.MosaicCell3D;
+import cnuphys.chimera.grid.MosaicGrid;
+import cnuphys.chimera.grid.MosaicGridPanel3D;
+import cnuphys.chimera.grid.SphericalGrid;
 import cnuphys.chimera.grid.Fiveplet;
 import cnuphys.chimera.grid.TestGrid;
 import cnuphys.chimera.monteCarlo.MonteCarloDialog;
 import cnuphys.chimera.monteCarlo.MonteCarloPoint;
 
 @SuppressWarnings("serial")
-public class Chimera extends BaseMDIApplication {
+public class Mosaic extends BaseMDIApplication {
 
 
 	//the singleton
-	private static Chimera _instance;
+	private static Mosaic _instance;
+	
+	//use monochrome for publication pics
+	public static boolean monochrome = false;
 
 
 	// chimera release
@@ -43,7 +49,7 @@ public class Chimera extends BaseMDIApplication {
 	private MonteCarloDialog _monteCarloDialog;
 
 	// the grid
-	private ChimeraGrid _chimeraGrid;
+	private MosaicGrid _mosaicGrid;
 
 	//current Montecarlo points
 	private List<MonteCarloPoint> _points = new ArrayList<>();
@@ -56,6 +62,9 @@ public class Chimera extends BaseMDIApplication {
 	
 	//menu items for showing all cells of a particular type
 	private JMenuItem[] _showAllType = new JMenuItem[Cell.intersectionTypes.length];
+	
+	//show all polar cells
+	private JMenuItem _showPolar;
 
 
 	/**
@@ -65,7 +74,7 @@ public class Chimera extends BaseMDIApplication {
 	 *                pairs. For example, PropertySupport.NAME, "my application",
 	 *                PropertySupport.CENTER, true, etc.
 	 */
-	private Chimera(Object... keyVals) {
+	private Mosaic(Object... keyVals) {
 		super(keyVals);
 
 		// set up what to do if the window is closed
@@ -82,21 +91,26 @@ public class Chimera extends BaseMDIApplication {
 
 	//create the initial (default) grid
 	private void createInitialGrid() {
-		_chimeraGrid = TestGrid.primaryTestGrid();
-	}
-
-	public double getRadius() {
-		return _chimeraGrid.getSphericalGrid().getRadius();
+		_mosaicGrid = TestGrid.primaryTestGrid();
 	}
 
 	/**
-	 * Get the singleton instance of the Chimera class
+	 * Get the radius of the spherical grid
+	 * 
+	 * @return the radius of the spherical grid
+	 */
+	public double getRadius() {
+		return _mosaicGrid.getSphericalGrid().getRadius();
+	}
+
+	/**
+	 * Get the singleton instance of the Mosaic class
 	 *
 	 * @return the singleton instance
 	 */
-	public static Chimera getInstance() {
+	public static Mosaic getInstance() {
 		if (_instance == null) {
-			_instance = new Chimera(PropertySupport.TITLE, "chimera " + RELEASE, PropertySupport.BACKGROUNDIMAGE,
+			_instance = new Mosaic(PropertySupport.TITLE, "mosaic " + RELEASE, PropertySupport.BACKGROUNDIMAGE,
 					"images/cnu.png", PropertySupport.FRACTION, 0.9);
 
 			_instance.addInitialViews();
@@ -107,13 +121,22 @@ public class Chimera extends BaseMDIApplication {
     }
 
 	/**
-	 * Get the Chimera grid
+	 * Get the Mosaic grid
 	 *
-	 * @return the Chimera grid
+	 * @return the Mosaic grid
 	 */
-	public ChimeraGrid getChimeraGrid() {
-		return _chimeraGrid;
+	public MosaicGrid getMosaicGrid() {
+		return _mosaicGrid;
 	}
+	
+	/**
+	 * Get the Spherical grid
+	 * @return the spherical grid
+	 */
+	public SphericalGrid getSphericalGrid() {
+        return _mosaicGrid.getSphericalGrid();
+	}
+
 
 	/**
 	 * Add the initial views to the desktop.
@@ -163,17 +186,26 @@ public class Chimera extends BaseMDIApplication {
 		showAllCells.setEnabled(false);
 		
 		menu.add(item);
+		menu.addSeparator();
         menu.add(tableItem);
-        menu.add(showAllCells);
+		menu.addSeparator();
+		menu.add(showAllCells);
         
 		for (int i = 0; i < Cell.intersectionTypes.length; i++) {
 			final int type = i;
 			_showAllType[type] = new JMenuItem("Show All " + Cell.intersectionTypes[i]);
 			_showAllType[type].addActionListener(
-					e -> ChimeraCell3D.displayCellList(_chimeraGrid.getIntersectingCells(), _chimeraGrid, type));
+					e -> MosaicCell3D.displayCellList(_mosaicGrid.getIntersectingCells(), _mosaicGrid, type));
 			_showAllType[type].setEnabled(false);
 			menu.add(_showAllType[type]);
 		}
+		
+		//show polar cells
+		_showPolar = new JMenuItem("Show Polar Cells");
+		_showPolar.setEnabled(false);
+		_showPolar.addActionListener(e -> showAllCells(Cell.polar));
+		menu.addSeparator();
+		menu.add(_showPolar);
       
 		getJMenuBar().add(menu);
 		
@@ -182,48 +214,71 @@ public class Chimera extends BaseMDIApplication {
 	
 	//show the whole grid
 	private void handleGrid() {
-        ChimeraGridPanel3D.showGrid(_chimeraGrid);
+        MosaicGridPanel3D.showGrid(_mosaicGrid);
 	}
 
 	//handle intersecting cells
 	private void handleIntersectingCells(JMenuItem tableItem, JMenuItem showAllCells) {
-		_chimeraGrid.findIntersectingCells();
+		_mosaicGrid.findIntersectingCells();
 		tableItem.setEnabled(true);
 		showAllCells.setEnabled(true);
 		for (int i = 0; i < Cell.intersectionTypes.length; i++) {
 			_showAllType[i].setEnabled(true);
 		}
+		_showPolar.setEnabled(true);
 	}
 	
 	//show intersecting cells
 	private void showAllCells(int type) {
-		ChimeraCell3D.displayCellList(_chimeraGrid.getIntersectingCells(), 
-				_chimeraGrid, type);
+		MosaicCell3D.displayCellList(_mosaicGrid.getIntersectingCells(), 
+				_mosaicGrid, type);
 }
 
 	
 	private void handleCellTable() {
-		CellTablePanel.showDialog(_chimeraGrid.getIntersectingCells());
+		CellTablePanel.showDialog(_mosaicGrid.getIntersectingCells());
 	}
 
 	// add to the options menu
 	private void addToOptionMenu(JMenu omenu) {
-		
-		JMenuItem gridItem = new JMenuItem("Grid...");
-		gridItem.addActionListener(e -> handleGrid());
+	    
+	    JMenuItem gridItem = new JMenuItem("Grid...");
+	    gridItem.addActionListener(e -> handleGrid());
 
 	    JMenuItem monteCarloItem = new JMenuItem("Monte Carlo...");
 	    monteCarloItem.addActionListener(e -> handleMonteCarloDialog());
 
-	    
+	    // Create radio button menu items for color options
+	    JRadioButtonMenuItem colorItem = new JRadioButtonMenuItem("Color Drawing", !monochrome);
+	    JRadioButtonMenuItem monochromeItem = new JRadioButtonMenuItem("Monochrome", monochrome);
+
+	    // Group them to ensure only one is selected at a time
+	    ButtonGroup colorGroup = new ButtonGroup();
+	    colorGroup.add(colorItem);
+	    colorGroup.add(monochromeItem);
+
+	    // Action listeners to toggle the monochrome setting
+	    colorItem.addActionListener(e -> {
+	        monochrome = false;
+	        refresh();  // Refresh the UI to reflect changes
+	    });
+
+	    monochromeItem.addActionListener(e -> {
+	        monochrome = true;
+	        refresh();  // Refresh the UI to reflect changes
+	    });
+
+	    // Add items to the options menu
 	    omenu.add(gridItem);
 	    omenu.add(monteCarloItem);
+	    omenu.addSeparator(); // Separate grid/Monte Carlo options from color settings
+	    omenu.add(colorItem);
+	    omenu.add(monochromeItem);
 	}
-
 	//handle selection of the monte carlo dialog
 	private void handleMonteCarloDialog() {
 		if (_monteCarloDialog == null) {
-			_monteCarloDialog = new MonteCarloDialog(this, _chimeraGrid);
+			_monteCarloDialog = new MonteCarloDialog(this, _mosaicGrid);
 		}
 		_monteCarloDialog.setVisible(true);
 		_monteCarloDialog.toFront();
@@ -275,7 +330,7 @@ public class Chimera extends BaseMDIApplication {
 			public void run() {
 				getInstance();
 				getInstance().setVisible(true);
-				System.out.println("chimera %s is ready.");
+				System.out.println("Mosaic %s is ready.");
 			}
 
 		});

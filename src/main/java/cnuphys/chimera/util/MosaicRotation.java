@@ -7,7 +7,7 @@ package cnuphys.chimera.util;
  * The axes are specified using the constants CR_X_AXIS, CR_Y_AXIS, and CR_Z_AXIS.
  * </p>
  */
-public class ChimeraRotation {
+public class MosaicRotation {
 
     // Constants to specify the axes.
     public static final int CR_X_AXIS = 0;
@@ -27,7 +27,7 @@ public class ChimeraRotation {
     /**
      * Default constructor. Creates an identity rotation.
      */
-    public ChimeraRotation() {
+    public MosaicRotation() {
         setIdentity();
     }
 
@@ -42,7 +42,7 @@ public class ChimeraRotation {
      * @param axis1  The axis of rotation (use CR_X_AXIS, CR_Y_AXIS, or CR_Z_AXIS).
      * @return A new ChimeraRotation corresponding to the given rotation.
      */
-    public static ChimeraRotation rotationFromAngles(double theta1, int axis1) {
+    public static MosaicRotation rotationFromAngles(double theta1, int axis1) {
         return rotationFromAngles(theta1, axis1, 0.0, CR_X_AXIS);
     }
 
@@ -55,7 +55,7 @@ public class ChimeraRotation {
      * @param axis2  The second rotation axis.
      * @return A new ChimeraRotation corresponding to the two rotations.
      */
-    public static ChimeraRotation rotationFromAngles(double theta1, int axis1,
+    public static MosaicRotation rotationFromAngles(double theta1, int axis1,
                                                        double theta2, int axis2) {
         return rotationFromAngles(theta1, axis1, theta2, axis2, 0.0, CR_X_AXIS);
     }
@@ -74,10 +74,10 @@ public class ChimeraRotation {
      * @param axis3  The third rotation axis.
      * @return A new ChimeraRotation representing the combined rotation.
      */
-    public static ChimeraRotation rotationFromAngles(double theta1, int axis1,
+    public static MosaicRotation rotationFromAngles(double theta1, int axis1,
                                                        double theta2, int axis2,
                                                        double theta3, int axis3) {
-        ChimeraRotation rotation = new ChimeraRotation();
+        MosaicRotation rotation = new MosaicRotation();
 
         // Check for near-zero rotations.
         boolean t1Zero = Math.abs(theta1) < TINY_ANG;
@@ -126,10 +126,10 @@ public class ChimeraRotation {
      * @param theta2  The second rotation angle (radians).
      * @param axis2   The second rotation axis.
      */
-    public static void rotationFromAngles(ChimeraRotation r, double theta1, int axis1,
+    public static void rotationFromAngles(MosaicRotation r, double theta1, int axis1,
                                           double theta2, int axis2) {
         // Use the two-rotation version that returns a new instance.
-        ChimeraRotation temp = rotationFromAngles(theta1, axis1, theta2, axis2);
+        MosaicRotation temp = rotationFromAngles(theta1, axis1, theta2, axis2);
         r.identity = temp.identity;
         r.matrix = temp.matrix;
         r.invMatrix = temp.invMatrix;

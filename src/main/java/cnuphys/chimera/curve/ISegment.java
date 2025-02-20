@@ -12,5 +12,6 @@ public interface ISegment {
     
     public UnivariateFunction getDPhiFunction();
 
-
+    public double pathLength();
+    
 }

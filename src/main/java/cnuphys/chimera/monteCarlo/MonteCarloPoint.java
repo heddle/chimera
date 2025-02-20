@@ -5,7 +5,7 @@ import java.util.Random;
 
 import cnuphys.chimera.frame.Mosaic;
 import cnuphys.chimera.grid.MosaicGrid;
-import cnuphys.chimera.grid.Fiveplet;
+import cnuphys.chimera.grid.Fivetuple;
 import cnuphys.chimera.util.Point3D;
 import cnuphys.chimera.util.ThetaPhi;
 
@@ -31,7 +31,7 @@ public class MonteCarloPoint {
 		};
 
 	public ThetaPhi thetaPhi;
-	public Fiveplet fiveplet;
+	public Fivetuple fiveplet;
 	
 	private Color mapColors[] = monoChromeColors;
 
@@ -50,7 +50,7 @@ public class MonteCarloPoint {
 		grid.getSphericalGrid().getIndices(thetaPhi, sIndices);
 		grid.getCartesianGrid().getIndices(cartesian, cIndices);
 
-		fiveplet = new Fiveplet(cIndices[0], cIndices[1], cIndices[2], sIndices[0], sIndices[1]);
+		fiveplet = new Fivetuple(cIndices[0], cIndices[1], cIndices[2], sIndices[0], sIndices[1]);
 
     }
 

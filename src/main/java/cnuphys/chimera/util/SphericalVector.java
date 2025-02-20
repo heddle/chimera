@@ -12,7 +12,8 @@ public class SphericalVector {
 	public double r;
 	
 	/**
-	 * Create a spherical vector.
+	 * Create a spherical vector. Azimtuthal angles will be normalized to the range
+	 * [-pi, pi].
 	 * 
 	 * @param theta the polar angle in radians
 	 * @param phi   the azimuthal angle in radians

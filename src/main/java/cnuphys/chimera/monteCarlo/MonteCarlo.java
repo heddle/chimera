@@ -9,7 +9,7 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
 import cnuphys.chimera.frame.Mosaic;
-import cnuphys.chimera.grid.Fiveplet;
+import cnuphys.chimera.grid.Fivetuple;
 
 public class MonteCarlo {
 
@@ -25,7 +25,7 @@ public class MonteCarlo {
 		// Disable the button while running
 		progressBar.setValue(0);
 		List<MonteCarloPoint> points = Mosaic.getInstance().getMonteCarloPoints();
-		HashSet<Fiveplet> seenTuples = Mosaic.getInstance().getMonteCarloSeenSet();
+		HashSet<Fivetuple> seenTuples = Mosaic.getInstance().getMonteCarloSeenSet();
 		if (clear) {
 			points.clear();
 		}

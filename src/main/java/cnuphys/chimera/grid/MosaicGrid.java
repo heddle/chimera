@@ -5,10 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cnuphys.bCNU.util.Bits;
-import cnuphys.chimera.util.MosaicPlane;
+import cnuphys.chimera.curve.Patch;
 import cnuphys.chimera.util.ClosestFacePoint;
 import cnuphys.chimera.util.Point3D;
-
 /**
  * Represents a Chimera grid, which combines a CartesianGrid and a SphericalGrid.
  * This class identifies and stores the indices of Cartesian grid cells that intersect
@@ -21,6 +20,8 @@ public class MosaicGrid {
     
     //the list of all intersecting cells
     private List<Cell> intersectingCells = new ArrayList<>();
+    
+    private List<Patch> _prePatches = new ArrayList<>();
 
     public MosaicGrid(CartesianGrid cartesianGrid, SphericalGrid sphericalGrid) {
         this.cartesianGrid = new CartesianGrid(cartesianGrid); 
@@ -61,15 +62,16 @@ public class MosaicGrid {
         double radius = sphericalGrid.getRadius();
         double rSquared = radius * radius;
 
-        int nx = cartesianGrid.getNumX() - 1;
-        int ny = cartesianGrid.getNumY() - 1;
-        int nz = cartesianGrid.getNumZ() - 1;
+        //get the bulk limits for efficiency
+        int[] xBulkLims = cartesianGrid.getXGrid().bulkFilterLimits(radius);
+        int[] yBulkLims = cartesianGrid.getYGrid().bulkFilterLimits(radius);
+        int[] zBulkLims = cartesianGrid.getZGrid().bulkFilterLimits(radius);
 
-		for (int iz = 0; iz < nz; iz++) {
-			for (int iy = 0; iy < ny; iy++) {
-				for (int ix = 0; ix < nx; ix++) {
+		for (int iz = zBulkLims[0]; iz <= zBulkLims[1]; iz++) {
+			for (int iy = yBulkLims[0]; iy <= yBulkLims[1]; iy++) {
+				for (int ix = xBulkLims[0]; ix <= xBulkLims[1]; ix++) {
 					
-					double[][] cell = GridSupport.getCellCorners(cartesianGrid, ix, iy, iz);
+					double[][] cellCorners = GridSupport.getCellCorners(cartesianGrid, ix, iy, iz);
 
 			        int cornerBits = 0;
 					boolean hasInside = false;
@@ -77,7 +79,7 @@ public class MosaicGrid {
 
 					// check each corner of the cell
 					for (int canonicalCorner = 0; canonicalCorner < 8; canonicalCorner++) {
-						double[] corner = cell[canonicalCorner];
+						double[] corner = cellCorners[canonicalCorner];
 						double x = corner[0], y = corner[1], z = corner[2];
 						double distSquared = x * x + y * y + z * z;
 
@@ -93,11 +95,15 @@ public class MosaicGrid {
                     //if no traditional intersection, must do the kiss test!
                     //for cells with no inside points
                     if (hasInside && hasOutside) {
-                        intersectingCells.add(new Cell(cartesianGrid, ix, iy, iz, cornerBits, radius));
+                    	Cell cell = new Cell(cartesianGrid, ix, iy, iz, cornerBits, radius);
+                        intersectingCells.add(cell);
+                        Patch prePatch = new Patch(cell.getBoundaryCurves(), ix, iy, iz, -1, -1);
+                        _prePatches.add(prePatch);
+                        cell.setPrepatch(prePatch);
                     }
                     else if (!hasInside) {
 						Point3D.Double closestPoint = new Point3D.Double();
-						int kissFace = kissTest(cell, radius, closestPoint);
+						int kissFace = kissTest(cellCorners, radius, closestPoint);
 						if (kissFace >= 0) {
 							Cell kissCell = new Cell(cartesianGrid, ix, iy, iz, cornerBits, radius);
 							kissCell.setClosestPoint(closestPoint);
@@ -110,6 +116,16 @@ public class MosaicGrid {
         } //z
         System.out.println("Intersecting cells count: " + intersectingCells.size());
         Cell.report(intersectingCells);
+        
+        //total area of the patches
+        double totalArea = 0;
+		for (Patch patch : _prePatches) {
+			double patchArea = patch.areaEstimate(5);
+			System.out.println("Patch area: " + patchArea);
+			totalArea += patchArea;
+		}
+        System.out.println("Prepatch count: " + _prePatches.size() + " Total normalized area: " + totalArea);
+        
     }
 
     //do the hideous kiss test (this is the test devised by chatGPT)
@@ -127,7 +143,6 @@ public class MosaicGrid {
 		}
 
 		double[][] faceCorners = GridSupport.getFaceCorners(corners, closestFace);
-
 		double[] closePoint = ClosestFacePoint.closestPointOnFaceToOrigin(faceCorners, ClosestFacePoint.TOL);
 		double dist = Math
 				.sqrt(closePoint[0] * closePoint[0] + closePoint[1] * closePoint[1] + closePoint[2] * closePoint[2]);
@@ -138,9 +153,4 @@ public class MosaicGrid {
 
 		return -1;
     }
-
-
-    	 
-    
-
 }

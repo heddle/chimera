@@ -16,9 +16,11 @@ import bCNU3D.Support3D;
 import cnuphys.bCNU.dialog.SimpleDialog;
 import cnuphys.chimera.curve.GeneralCurve;
 import cnuphys.chimera.curve.OldGeneralCurve;
+import cnuphys.chimera.curve.Patch;
 import cnuphys.chimera.frame.Mosaic;
 import cnuphys.chimera.util.PanelKeys;
 import cnuphys.chimera.util.Point3D;
+import cnuphys.chimera.util.ThetaPhi;
 import item3D.Item3D;
 
 /**
@@ -34,14 +36,14 @@ import item3D.Item3D;
  * averaging them to obtain the center, and then translating the drawing so that
  * the cell center is at the origin.
  */
-public class MosaicCell3D extends Item3D {
+public class Cell3D extends Item3D {
 	
     // Static dialog-related fields for display; only one dialog instance is used.
     private static Panel3D oneCellPanel3D;
     private static Panel3D cellListPanel3D;
     private static SimpleDialog oneCellDialog;
     private static SimpleDialog cellListDialog;
-    private static MosaicCell3D cell3D;
+    private static Cell3D cell3D;
 
     private Cell _cell;
     // The eight cell corners (each is a double[3]: {x, y, z})
@@ -52,6 +54,8 @@ public class MosaicCell3D extends Item3D {
     boolean _showClip;
     boolean _labelMarkers;
     float _markerSize = 5f;
+    
+    private boolean drawPrepatch = true;
 
     /**
      * Constructs a ChimeraCell3D.
@@ -59,7 +63,7 @@ public class MosaicCell3D extends Item3D {
      * @param panel the Panel3D on which to draw this item.
      * @param cell  the Cell to be displayed.
      */
-	public MosaicCell3D(Panel3D panel, Cell cell, boolean translate, boolean showSphere, boolean showClip,
+	public Cell3D(Panel3D panel, Cell cell, boolean translate, boolean showSphere, boolean showClip,
 			boolean labelMarkers, float markerSize) {
         super(panel);
         _translate = translate;
@@ -162,10 +166,30 @@ public class MosaicCell3D extends Item3D {
 					Support3D.drawPoint(drawable, (float) rx, (float) ry, (float) rz, Color.cyan, _markerSize);
 				}
 			}
-		}
+			
+			drawPrepatch(drawable);
+		} // not kiss
 
         gl.glPopMatrix();
     }
+    
+	private void drawPrepatch(GLAutoDrawable drawable) {
+    	if (!drawPrepatch) {
+    		return;
+    	}
+    	
+    	Patch prepatch = _cell.getPrepatch();
+		if (prepatch == null) {
+			return;
+		}
+		
+		List<ThetaPhi> vertices = prepatch.getSpehericalVertices(5);
+		for (ThetaPhi tp : vertices) {
+			Point3D.Double p = tp.toCartesian();
+			Support3D.drawPoint(drawable, (float) p.x, (float) p.y, (float) p.z, Color.yellow, 5f);
+		}
+		
+	}
 
     /**
      * Draws the sphere using clipping planes so that the portion inside the cell
@@ -332,7 +356,7 @@ public class MosaicCell3D extends Item3D {
                 @Override
                 public void createInitialItems() {
                     String[] labels = { "X", "Y", "Z" };
-                    cell3D = new MosaicCell3D(this, cell, true, true, true, true, 5f);
+                    cell3D = new Cell3D(this, cell, true, true, true, true, 5f);
                     addItem(cell3D);
                  }
 
@@ -418,7 +442,7 @@ public class MosaicCell3D extends Item3D {
 					boolean show = (showType == Cell.allTypes || type == showType || (showType == Cell.polar && (cell.getPoleEnclosed() != 0)));
 					if (show) {
 						System.out.println("Showing cell: " + cell);
-						MosaicCell3D cell3D = new MosaicCell3D(this, cell, false, first, false, false, 3f);
+						Cell3D cell3D = new Cell3D(this, cell, false, first, false, false, 3f);
 						first = false;
 						addItem(cell3D);
 					}

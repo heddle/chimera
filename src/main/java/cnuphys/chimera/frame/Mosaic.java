@@ -23,11 +23,11 @@ import cnuphys.bCNU.util.FileUtilities;
 import cnuphys.bCNU.util.PropertySupport;
 import cnuphys.chimera.grid.Cell;
 import cnuphys.chimera.grid.CellTablePanel;
-import cnuphys.chimera.grid.MosaicCell3D;
+import cnuphys.chimera.grid.Cell3D;
 import cnuphys.chimera.grid.MosaicGrid;
 import cnuphys.chimera.grid.MosaicGridPanel3D;
 import cnuphys.chimera.grid.SphericalGrid;
-import cnuphys.chimera.grid.Fiveplet;
+import cnuphys.chimera.grid.Fivetuple;
 import cnuphys.chimera.grid.TestGrid;
 import cnuphys.chimera.monteCarlo.MonteCarloDialog;
 import cnuphys.chimera.monteCarlo.MonteCarloPoint;
@@ -55,7 +55,7 @@ public class Mosaic extends BaseMDIApplication {
 	private List<MonteCarloPoint> _points = new ArrayList<>();
 
 	 // HashSet to store unique 5-plets
-    private final HashSet<Fiveplet> _seenTuples = new HashSet<>();
+    private final HashSet<Fivetuple> _seenTuples = new HashSet<>();
 
 	//2D MC view
 	private MonteCarloView2D _mc2DView;
@@ -157,7 +157,7 @@ public class Mosaic extends BaseMDIApplication {
 	 * Get the current monte carlo patch counts
 	 * @return the current monte carlo patch counts
 	 */
-	public HashSet<Fiveplet> getMonteCarloSeenSet() {
+	public HashSet<Fivetuple> getMonteCarloSeenSet() {
 		return _seenTuples;
 	}
 
@@ -195,7 +195,7 @@ public class Mosaic extends BaseMDIApplication {
 			final int type = i;
 			_showAllType[type] = new JMenuItem("Show All " + Cell.intersectionTypes[i]);
 			_showAllType[type].addActionListener(
-					e -> MosaicCell3D.displayCellList(_mosaicGrid.getIntersectingCells(), _mosaicGrid, type));
+					e -> Cell3D.displayCellList(_mosaicGrid.getIntersectingCells(), _mosaicGrid, type));
 			_showAllType[type].setEnabled(false);
 			menu.add(_showAllType[type]);
 		}
@@ -230,7 +230,7 @@ public class Mosaic extends BaseMDIApplication {
 	
 	//show intersecting cells
 	private void showAllCells(int type) {
-		MosaicCell3D.displayCellList(_mosaicGrid.getIntersectingCells(), 
+		Cell3D.displayCellList(_mosaicGrid.getIntersectingCells(), 
 				_mosaicGrid, type);
 }
 

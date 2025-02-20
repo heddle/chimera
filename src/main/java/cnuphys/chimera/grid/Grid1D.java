@@ -118,4 +118,21 @@ public class Grid1D {
     public int numPoints() {
         return pts.length;
     }
+    
+    /**
+     * Get bulk filter limits around an assumed sphere of 
+     * a given radius and centered on the origin.
+     * @param radius The radius of the sphere.
+     * @return a set if indices [lower, upper] of grid points
+     * such that any outside the range will certainly be outside
+     * the sphere.
+     */
+    public int[] bulkFilterLimits(double radius) {
+		int[] limits = new int[2];
+		limits[0] = locateInterval(-radius) - 1;
+		limits[1] = locateInterval(radius) + 1;
+		limits[0] = Math.max(0, limits[0]);
+		limits[1] = Math.min(numPoints() - 1, limits[1]);
+		return limits;
+    }
 }

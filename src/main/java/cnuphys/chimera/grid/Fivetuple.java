@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import cnuphys.chimera.util.ThetaPhi;
 
-public class Fiveplet {
+public class Fivetuple {
 	private static final String NTHETA = "n" + ThetaPhi.SMALL_THETA;
 	private static final String NPHI = "n" + ThetaPhi.SMALL_PHI;
 
@@ -13,6 +13,11 @@ public class Fiveplet {
 	public int nz;
 	public int ntheta;
 	public int nphi;
+	
+	public Fivetuple() {
+		set(-1, -1, -1, -1, -1);
+	}
+
 
 	/**
 	 * Constructor for the Fiveplet class.
@@ -23,7 +28,11 @@ public class Fiveplet {
 	 * @param ntheta index on the theta grid.
 	 * @param nphi   index on the phi grid.
 	 */
-	public Fiveplet(int nx, int ny, int nz, int ntheta, int nphi) {
+	public Fivetuple(int nx, int ny, int nz, int ntheta, int nphi) {
+		set(nx, ny, nz, ntheta, nphi);
+	}
+	
+	public void set(int nx, int ny, int nz, int ntheta, int nphi) {
 		this.nx = nx;
 		this.ny = ny;
 		this.nz = nz;
@@ -40,7 +49,7 @@ public class Fiveplet {
         if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
-        Fiveplet that = (Fiveplet) obj;
+        Fivetuple that = (Fivetuple) obj;
         return nx == that.nx && ny == that.ny && nz == that.nz &&
                ntheta == that.ntheta && nphi == that.nphi;
     }

@@ -7,6 +7,10 @@ package cnuphys.chimera.util;
  
 import java.io.Serializable;
 
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+
+import cnuphys.chimera.grid.MosaicGrid;
+
 public class Point3D implements Serializable {
     public static class Double implements Serializable {
         public double x; // x-coordinate
@@ -163,5 +167,14 @@ public class Point3D implements Serializable {
         public int hashCode() {
             return java.util.Objects.hash(x, y, z);
         }
+        
+        /**
+         * Converts this Point3D.Double to a common maths normalized 3D vector
+         * @return a normalized 3D vector
+         */
+		public Vector3D toNormalizedVector3D() {
+			Vector3D v = new Vector3D(x, y, z);
+			return v.normalize();
+		}
     }
 }

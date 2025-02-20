@@ -5,14 +5,10 @@ import java.util.List;
 import java.util.Objects;
 
 import cnuphys.bCNU.util.Bits;
-import cnuphys.chimera.curve.CompositeSphericalLoop;
 import cnuphys.chimera.curve.GeneralCurve;
-import cnuphys.chimera.curve.ISegment;
+import cnuphys.chimera.curve.Patch;
 import cnuphys.chimera.curve.PoleEnclosureChecker;
-import cnuphys.chimera.curve.SphericalAreaCalculator;
-import cnuphys.chimera.curve.SphericalLoopUtils;
 import cnuphys.chimera.util.MosaicPlane;
-import cnuphys.chimera.util.Integrator;
 import cnuphys.chimera.util.Point3D;
 
 /**
@@ -30,9 +26,9 @@ public class Cell {
 	public static final int cornerPush = 6;
 	public static final int skewCut = 7;
 	public static final int kiss = 8;
-	
+
 	public static final int polar = 99; //polar is an attribute, not another type
-		
+
 	public static int allTypes = -1;
 
 	// corresponding to the intersection types
@@ -50,28 +46,29 @@ public class Cell {
 	// the edges that intersect the sphere
 	private int[] edgeIntersections;
 	private Edge[] edges;
-	
+
 	// The intersection boundary curves
-	private List<GeneralCurve> _boundaryCurves = new ArrayList<GeneralCurve>();
+	private List<GeneralCurve> _boundaryCurves = new ArrayList<>();
 
 	// The intersection type
 	private int intersectionType = -1;
 
 	// The Cartesian grid
 	private CartesianGrid grid;
-	
+
 	//sphere radius
 	private double radius;
-	
+
 	//pole enclosure flag
 	private int poleEnclosed = 0;
-	
+
 	//closest point (just inside) if this is a kiss
 	public Point3D.Double closestPoint;
 	
-	private static double totalArea = 0;
-	
-		/**
+	//associated prePatch
+	private Patch prepatch;
+
+	/**
 	 * Constructor for the Cell class.
 	 *
 	 * @param nx        index on the x grid.
@@ -79,6 +76,7 @@ public class Cell {
 	 * @param nz        index on the z grid.
 	 * @param inCorners the bitwise indices of the corners of the cell that are
 	 *                  inside the sphere
+	 * @param radius    the radius of the sphere
 	 */
 	public Cell(CartesianGrid grid, int nx, int ny, int nz, int inCorners, double radius) {
 		this.grid = grid;
@@ -90,7 +88,7 @@ public class Cell {
 		edgeIntersections = GridSupport.findIntersectingEdges(inCorners);
 		intersectionType = getIntersectionType();
 		makeEdges(radius);
-		
+
 		if (edges != null) {
 	        int numEdges = edges.length;
 			for (int i = 0; i < numEdges; i++) {
@@ -109,19 +107,24 @@ public class Cell {
 			}
 
 		} //edges not null
-		
-		// get area
-		if (_boundaryCurves.size() > 0) {
-			try {
-				double area = SphericalAreaCalculator.computeEnclosedArea(_boundaryCurves, radius);
-				totalArea += area;
-				System.out.println("Area: " + area + " Total Area: " + totalArea);
-			} catch (Exception e) {
-				System.err.println("Bad area for cell " + this);
-				System.exit(1);
-			}
 
-		}
+	}
+	
+	/**
+	 * Get the associated prePatch
+	 * 
+	 * @return the associated prePatch
+	 */
+	public Patch getPrepatch() {
+		return prepatch;
+	}
+
+	/**
+	 * Set the associated prePatch
+	 * @param prePatch the prePatch to set
+	 */
+	public void setPrepatch(Patch prePatch) {
+		this.prepatch = prePatch;
 	}
 	
 	/**
@@ -132,16 +135,16 @@ public class Cell {
 	public Point3D.Double getClosestPoint() {
 		return closestPoint;
 	}
-	
+
 	/**
 	 * Get the pole enclosure flag
-	 * 
+	 *
 	 * @return the pole enclosure flag
 	 */
 	public int getPoleEnclosed() {
 		return poleEnclosed;
 	}
-	
+
 	/**
 	 * Set the closest point (it means this cell is a kiss)
 	 * @param p the closest point
@@ -165,28 +168,28 @@ public class Cell {
 			edges[i] = new Edge(grid, corners[0], corners[1], nx, ny, nz, radius);
 			i++;
 		}
-		
+
 		// order the edges
 		edges = EdgeOrdering.reorderEdges(edges);
 	}
-	
+
 	/**
 	 * Get the edges that intersect the sphere
-	 * 
+	 *
 	 * @return the edges that intersect the sphere
 	 */
 	public Edge[] getEdges() {
         return edges;
 	}
-	
+
 	public CartesianGrid getCartesianGrid() {
 		return grid;
 	}
-	
+
 	public List<GeneralCurve> getBoundaryCurves() {
 		return _boundaryCurves;
 	}
-	
+
 	/**
 	 * Get the radius of the sphere
 	 * @return the radius of the sphere
@@ -197,7 +200,7 @@ public class Cell {
 
 	/**
 	 * Get the intersection type
-	 * 
+	 *
 	 * @return the intersection type
 	 */
 	public int getIntersectionType() {
@@ -265,10 +268,10 @@ public class Cell {
 
 		return intersectionType;
 	}
-	
+
 	/**
 	 * Get the intersection type as a string
-	 * 
+	 *
 	 * @return the intersection type as a string
 	 */
 	public String getIntersectionTypeString() {
@@ -277,7 +280,7 @@ public class Cell {
 
 	/**
 	 * Get the corners (stored bitwise) that are inside the sphere
-	 * 
+	 *
 	 * @return the corners that are inside the sphere
 	 */
 	public int getInsideCorners() {
@@ -286,7 +289,7 @@ public class Cell {
 
 	/**
 	 * Get the count of the number of corners that are inside the sphere
-	 * 
+	 *
 	 * @return the number of inside corners
 	 */
 	public int numInsideCorners() {
@@ -295,7 +298,7 @@ public class Cell {
 
 	/**
 	 * Get the count of the number of edges that intersect the sphere
-	 * 
+	 *
 	 * @return the number of intersecting edges
 	 */
 	public int getNumEdgeIntersections() {
@@ -304,13 +307,13 @@ public class Cell {
 
 	/**
 	 * Get the count of the number of corners that are outside the sphere
-	 * 
+	 *
 	 * @return the number of outside corners
 	 */
 	public int numOutsideCorners() {
 		return 8 - numInsideCorners();
 	}
-	
+
 	/**
 	 * Returns a unit normal to the plane of the specified face.
 	 * The face is identified by its canonical index:
@@ -322,7 +325,7 @@ public class Cell {
 	 *   <li>Face 4: corners {0, 2, 6, 4} (typically the plane x = x0)</li>
 	 *   <li>Face 5: corners {1, 3, 7, 5} (typically the plane x = x1)</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param face the face index (0 to 5)
 	 * @return a double[3] representing the unit normal to that face.
 	 * @throws IllegalArgumentException if the face index is invalid.
@@ -330,25 +333,25 @@ public class Cell {
 	public double[] getUnitNormal(int face) {
 	    // Get all 8 cell corners (in canonical order) for this cell.
 	    double[][] cellCorners = GridSupport.getCellCorners(grid, nx, ny, nz);
-	    
+
 	    // Get the four canonical indices for the requested face.
 	    int[] faceIndices = GridSupport.getFaceCornerIndices(face);
-	    
+
 	    // Pick three points on the face.
 	    double[] p0 = cellCorners[faceIndices[0]];
 	    double[] p1 = cellCorners[faceIndices[1]];
 	    double[] p2 = cellCorners[faceIndices[2]];
-	    
+
 	    // Compute two vectors that lie in the face.
 	    double[] v1 = new double[] { p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2] };
 	    double[] v2 = new double[] { p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2] };
-	    
+
 	    // The cross product v1 x v2 gives a vector perpendicular to the face.
 	    double[] normal = new double[3];
 	    normal[0] = v1[1] * v2[2] - v1[2] * v2[1];
 	    normal[1] = v1[2] * v2[0] - v1[0] * v2[2];
 	    normal[2] = v1[0] * v2[1] - v1[1] * v2[0];
-	    
+
 	    // Normalize the vector.
 	    double mag = Math.sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
 	    if (mag == 0) {
@@ -357,10 +360,10 @@ public class Cell {
 	    normal[0] /= mag;
 	    normal[1] /= mag;
 	    normal[2] /= mag;
-	    
+
 	    return normal;
 	}
-	
+
 	   /**
      * Returns a ChimeraPlane corresponding to the given face index.
      * <p>
@@ -375,7 +378,7 @@ public class Cell {
      *   <li>Face 5: corners {1, 3, 7, 5} (typically the plane x = x1)</li>
      * </ul>
      * </p>
-     * 
+     *
      * @param face the face index (0 to 5)
      * @return the ChimeraPlane corresponding to that face.
      * @throws IllegalArgumentException if the face index is invalid.
@@ -385,13 +388,13 @@ public class Cell {
         if (face < 0 || face > 5) {
             throw new IllegalArgumentException("Face index must be between 0 and 5: " + face);
         }
-        
+
         // Get all 8 cell corners (each a double[3]) for this cell.
         double[][] cellCorners = GridSupport.getCellCorners(grid, nx, ny, nz);
-        
+
         // Get the canonical face corner indices.
         int[] faceIndices = GridSupport.getFaceCornerIndices(face);
-        
+
         // Convert the first three corners for the face into Point3D.Double objects.
         // (Assuming the ordering in GridSupport is such that these three points are non-collinear.)
         Point3D.Double p0 = new Point3D.Double(cellCorners[faceIndices[0]][0],
@@ -403,17 +406,19 @@ public class Cell {
         Point3D.Double p2 = new Point3D.Double(cellCorners[faceIndices[2]][0],
                                                  cellCorners[faceIndices[2]][1],
                                                  cellCorners[faceIndices[2]][2]);
-        
+
         // Create and return a new ChimeraPlane defined by these three points.
         return new MosaicPlane(p0, p1, p2);
     }
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null || getClass() != obj.getClass())
+		}
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
+		}
 		Cell that = (Cell) obj;
 		return nx == that.nx && ny == that.ny && nz == that.nz;
 	}
@@ -425,7 +430,7 @@ public class Cell {
 
 	/**
 	 * Get the center of the cell
-	 * 
+	 *
 	 * @return the center of the cell
 	 */
 	public double[] getCenter() {
@@ -441,7 +446,7 @@ public class Cell {
 		center[2] /= 8.0;
 		return center;
 	}
-	
+
 	@Override
 	public String toString() {
 		return String.format("Cell (%d, %d, %d) %s", nx, ny, nz, getIntersectionTypeString());
@@ -449,7 +454,7 @@ public class Cell {
 
 	/**
 	 * Report a list of Threeplets
-	 * 
+	 *
 	 * @param list the list to report
 	 */
 	public static void report(List<Cell> list) {
@@ -461,8 +466,8 @@ public class Cell {
 		}
 
 		int total = 0;
-		for (int i = 0; i < counts.length; i++) {
-			total += counts[i];
+		for (int count : counts) {
+			total += count;
 		}
 
 		for (int i = 0; i < counts.length; i++) {

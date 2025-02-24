@@ -108,7 +108,7 @@ public class GridSupport {
 
         return new int[] { faceZ, faceY, faceX };
     }
-    
+       
     /**
      * Returns the two face indices (as an int[2]) that the given edge is on.
      * The edge is specified by its canonical index (0-11) as defined by
@@ -345,6 +345,29 @@ public class GridSupport {
 		return faceCorners;
 	}
 	
+	   
+    /**
+     * Compute the centroid of the face.
+ 	 * @param corners the 8 cell corners stored as an array of 8 double arrays,
+	 *              each with 3 elements (x, y, z).
+	 * @param face [0, 5] for the faces of a cube. This assumes the canonical numbering.
+    * @return the centroid
+     */
+    public static double[] computeCentroid(double[][] corners, int face) {
+    	double[][] faceCorners = getFaceCorners(corners, face);
+        double[] centroid = {0, 0, 0};
+        for (int i = 0; i < 4; i++) {
+            centroid[0] += faceCorners[i][0];
+            centroid[1] += faceCorners[i][1];
+            centroid[2] += faceCorners[i][2];
+        }
+        centroid[0] /= 4.0;
+        centroid[1] /= 4.0;
+        centroid[2] /= 4.0;
+        return centroid;
+    }
+ 
+	
 	/**
 	 * Get the indices of the corners of the given face.
 	 * @param corners the 8 cell corners stored as an array of 8 double arrays,
@@ -364,6 +387,33 @@ public class GridSupport {
 		}
 		return rsqsum / 4;
 	}
+	
+	/**
+	 * Get the face that is closest to the origin based on its centroid
+	 * @param corners the corners of the cell
+	 * @return the face index [0, 5] that is closest
+	 */
+	public static int getClosestFaceToOrigin(double[][] corners) {
+    	int closestFace = -1;
+    	double minDist = Double.MAX_VALUE;
+		for (int face = 0; face < 6; face++) {
+			
+			double[] centroid = GridSupport.computeCentroid(corners, face); 
+			double distsq = centroid[0]*centroid[0] + centroid[1]*centroid[1] + centroid[2]*centroid[2];
+			
+			
+//			double distsq = GridSupport.faceAverageDistanceSquare(corners, face);
+			if (distsq < minDist) {
+				minDist = distsq;
+				closestFace = face;
+			}
+		}
+        return closestFace;		
+	}
+	
+	
+	
+	
     /**
      * Returns the Cartesian coordinates of the corners of the cell at the given indices.
      * @param ix the index of the smaller x coordinate

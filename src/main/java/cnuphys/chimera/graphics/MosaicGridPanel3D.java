@@ -1,4 +1,4 @@
-package cnuphys.chimera.grid;
+package cnuphys.chimera.graphics;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -11,6 +11,9 @@ import bCNU3D.Panel3D;
 import bCNU3D.Support3D;
 import cnuphys.bCNU.dialog.SimpleDialog;
 import cnuphys.chimera.frame.Mosaic;
+import cnuphys.chimera.grid.CartesianGrid;
+import cnuphys.chimera.grid.MosaicGrid;
+import cnuphys.chimera.grid.SphericalGrid;
 import cnuphys.chimera.util.MathUtil;
 import cnuphys.chimera.util.PanelKeys;
 import item3D.Axes3D;

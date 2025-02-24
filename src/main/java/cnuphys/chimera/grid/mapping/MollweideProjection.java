@@ -115,7 +115,7 @@ public class MollweideProjection implements IMapProjection {
 		container.worldToLocal(screenPoint2, xy2);
 
 		boolean isEquator = Math.abs(latitude) < 1e-6;
-		g2.setColor(isEquator ? Color.red : Color.black);
+		g2.setColor(isEquator ? Color.gray : Color.black);
 		g2.drawLine(screenPoint1.x, screenPoint1.y, screenPoint2.x, screenPoint2.y);
 	}
 

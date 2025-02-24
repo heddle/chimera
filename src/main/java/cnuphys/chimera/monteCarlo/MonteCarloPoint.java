@@ -21,7 +21,7 @@ public class MonteCarloPoint {
             new Color(220, 20, 60)    // Urban Red
         };
 	
-		private static Color[] monoChromeColors = { 
+		private static Color[] monochromeColors = { 
 				new Color(32, 32, 32),
 				new Color(64, 64, 64),
 				new Color(96, 96, 96),
@@ -33,7 +33,7 @@ public class MonteCarloPoint {
 	public ThetaPhi thetaPhi;
 	public Fivetuple fiveplet;
 	
-	private Color mapColors[] = monoChromeColors;
+	private Color mapColors[] = Mosaic.monochrome ? monochromeColors : mapColors1;
 
 	private static Random random = new Random();
 

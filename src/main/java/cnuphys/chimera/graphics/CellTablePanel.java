@@ -1,4 +1,4 @@
-package cnuphys.chimera.grid;
+package cnuphys.chimera.graphics;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -21,6 +21,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+
+import cnuphys.chimera.grid.Cell;
 
 /**
  * A panel that displays a list of Cell objects in a JTable with the following features:

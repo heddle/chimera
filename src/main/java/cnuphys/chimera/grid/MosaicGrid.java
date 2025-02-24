@@ -6,7 +6,7 @@ import java.util.List;
 
 import cnuphys.bCNU.util.Bits;
 import cnuphys.chimera.curve.Patch;
-import cnuphys.chimera.util.ClosestFacePoint;
+import cnuphys.chimera.util.ClosestPointToOrigin;
 import cnuphys.chimera.util.Point3D;
 /**
  * Represents a Chimera grid, which combines a CartesianGrid and a SphericalGrid.
@@ -121,7 +121,6 @@ public class MosaicGrid {
         double totalArea = 0;
 		for (Patch patch : _prePatches) {
 			double patchArea = patch.areaEstimate(5);
-			System.out.println("Patch area: " + patchArea);
 			totalArea += patchArea;
 		}
         System.out.println("Prepatch count: " + _prePatches.size() + " Total normalized area: " + totalArea);
@@ -132,18 +131,11 @@ public class MosaicGrid {
     private int kissTest(double[][] corners, double sphereRadius, Point3D.Double closestPoint) {
     	
     	//get the closest face
-    	int closestFace = -1;
-    	double minDist = Double.MAX_VALUE;
-		for (int face = 0; face < 6; face++) {
-			double distsq = GridSupport.faceAverageDistanceSquare(corners, face);
-			if (distsq < minDist) {
-				minDist = distsq;
-				closestFace = face;
-			}
-		}
+    	int closestFace = GridSupport.getClosestFaceToOrigin(corners);
 
-		double[][] faceCorners = GridSupport.getFaceCorners(corners, closestFace);
-		double[] closePoint = ClosestFacePoint.closestPointOnFaceToOrigin(faceCorners, ClosestFacePoint.TOL);
+//		double[][] faceCorners = GridSupport.getFaceCorners(corners, closestFace);
+//		double[] closePoint = ClosestFacePoint.closestPointOnFaceToOrigin(faceCorners, ClosestFacePoint.TOL);
+		double [] closePoint = ClosestPointToOrigin.closestPointOnFaceToOrigin(corners);
 		double dist = Math
 				.sqrt(closePoint[0] * closePoint[0] + closePoint[1] * closePoint[1] + closePoint[2] * closePoint[2]);
 		if (dist < sphereRadius) {

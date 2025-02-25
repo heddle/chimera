@@ -13,12 +13,18 @@ import cnuphys.chimera.util.ThetaPhi;
 public class MonteCarloPoint {
 
 	private static Color[] mapColors1 = {
-            new Color(70, 130, 180),  // Ocean Blue
-            new Color(34, 139, 34),   // Earth Green
-            new Color(240, 230, 140), // Desert Yellow
-            new Color(169, 169, 169), // Mountain Gray
-            new Color(95, 158, 160),  // Dark Cyan
-            new Color(220, 20, 60)    // Urban Red
+			Color.red,
+            new Color(70, 130, 180),
+            new Color(34, 200, 34),
+            Color.yellow,
+            new Color(240, 230, 140),
+            new Color(128, 128, 128),
+            new Color(48, 48, 48),
+            Color.orange,
+            new Color(95, 158, 160),
+            new Color(200, 20, 60), 
+            Color.cyan,
+            Color.pink
         };
 	
 		private static Color[] monochromeColors = { 
@@ -68,7 +74,8 @@ public class MonteCarloPoint {
 		if (fiveplet.nx < 0 || fiveplet.ny < 0 || fiveplet.nz < 0 || fiveplet.ntheta < 0 || fiveplet.nphi < 0) {
 			return -1;
 		}
-		int sum = fiveplet.nx + fiveplet.ny + fiveplet.nz + 2*fiveplet.ntheta + 2*fiveplet.nphi;
+		int sum = fiveplet.nx + fiveplet.ny + fiveplet.nz + fiveplet.ntheta + fiveplet.nphi;
+//		int sum = fiveplet.nx + fiveplet.ntheta*fiveplet.ny + fiveplet.nphi*fiveplet.nz + fiveplet.ntheta + fiveplet.nx*fiveplet.nphi;
 		return sum % mapColors.length;
 	}
 

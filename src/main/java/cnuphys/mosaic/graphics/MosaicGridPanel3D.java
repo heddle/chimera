@@ -149,7 +149,7 @@ public class MosaicGridPanel3D extends Panel3D {
      */
 	public static void showGrid(MosaicGrid grid) {
 		if (_dialog == null) {
-			_dialog = new SimpleDialog("Chimera Grid",  false, "Close") {
+			_dialog = new SimpleDialog("Mosaic Grid",  false, "Close") {
 				@Override
 				public Component createCenterComponent() {
 					MosaicGridPanel3D panel = createPanel(grid);

@@ -40,7 +40,7 @@ public class MosaicRotation {
      *
      * @param theta1 The rotation angle (radians) about the given axis.
      * @param axis1  The axis of rotation (use CR_X_AXIS, CR_Y_AXIS, or CR_Z_AXIS).
-     * @return A new ChimeraRotation corresponding to the given rotation.
+     * @return A new MosaicRotation corresponding to the given rotation.
      */
     public static MosaicRotation rotationFromAngles(double theta1, int axis1) {
         return rotationFromAngles(theta1, axis1, 0.0, CR_X_AXIS);
@@ -53,7 +53,7 @@ public class MosaicRotation {
      * @param axis1  The first rotation axis.
      * @param theta2 The second rotation angle (radians) about axis2.
      * @param axis2  The second rotation axis.
-     * @return A new ChimeraRotation corresponding to the two rotations.
+     * @return A new MosaicRotation corresponding to the two rotations.
      */
     public static MosaicRotation rotationFromAngles(double theta1, int axis1,
                                                        double theta2, int axis2) {
@@ -72,7 +72,7 @@ public class MosaicRotation {
      * @param axis2  The second rotation axis.
      * @param theta3 The third rotation angle (radians) about axis3.
      * @param axis3  The third rotation axis.
-     * @return A new ChimeraRotation representing the combined rotation.
+     * @return A new MosaicRotation representing the combined rotation.
      */
     public static MosaicRotation rotationFromAngles(double theta1, int axis1,
                                                        double theta2, int axis2,
@@ -115,12 +115,12 @@ public class MosaicRotation {
     // --------------------------
     
     /**
-     * Sets the provided ChimeraRotation instance according to two sequential rotations.
+     * Sets the provided MosaicRotation instance according to two sequential rotations.
      * <p>
-     * This method is provided to match the call signature from ChimeraPlane.
+     * This method is provided to match the call signature from MosaicPlane.
      * </p>
      *
-     * @param r       The ChimeraRotation instance to set.
+     * @param r       The MosaicRotation instance to set.
      * @param theta1  The first rotation angle (radians).
      * @param axis1   The first rotation axis.
      * @param theta2  The second rotation angle (radians).
@@ -182,7 +182,7 @@ public class MosaicRotation {
                 m[2][0] = 0.0;    m[2][1] = 0.0;   m[2][2] = 1.0;
                 break;
             default:
-                throw new IllegalArgumentException("[ChimeraRotation] Illegal axis constant for rotation: " + axis);
+                throw new IllegalArgumentException("[MosaicRotation] Illegal axis constant for rotation: " + axis);
         }
         return m;
     }

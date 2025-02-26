@@ -9,7 +9,7 @@ import cnuphys.mosaic.curve.Patch;
 import cnuphys.mosaic.util.ClosestPointToOrigin;
 import cnuphys.mosaic.util.Point3D;
 /**
- * Represents a Chimera grid, which combines a CartesianGrid and a SphericalGrid.
+ * Represents a ChimMosaicera grid, which combines a CartesianGrid and a SphericalGrid.
  * This class identifies and stores the indices of Cartesian grid cells that intersect
  * the sphere defined by the SphericalGrid.
  */

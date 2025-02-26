@@ -365,7 +365,7 @@ public class Cell {
 	}
 
 	   /**
-     * Returns a ChimeraPlane corresponding to the given face index.
+     * Returns a MosaicPlane corresponding to the given face index.
      * <p>
      * The face index must be between 0 and 5 (inclusive) and uses the canonical
      * face definitions:
@@ -380,7 +380,7 @@ public class Cell {
      * </p>
      *
      * @param face the face index (0 to 5)
-     * @return the ChimeraPlane corresponding to that face.
+     * @return the MosaicPlane corresponding to that face.
      * @throws IllegalArgumentException if the face index is invalid.
      */
     public MosaicPlane getPlane(int face) {
@@ -407,7 +407,7 @@ public class Cell {
                                                  cellCorners[faceIndices[2]][1],
                                                  cellCorners[faceIndices[2]][2]);
 
-        // Create and return a new ChimeraPlane defined by these three points.
+        // Create and return a new MosaicPlane defined by these three points.
         return new MosaicPlane(p0, p1, p2);
     }
 

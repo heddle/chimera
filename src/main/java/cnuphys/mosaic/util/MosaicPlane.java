@@ -100,7 +100,7 @@ public class MosaicPlane {
             phi = Math.atan2(B, A);
         }
         
-        // Assumes ChimeraRotation.rotationFromAngles sets up the rotation matrix appropriately.
+        // Assumes MosaicRotation.rotationFromAngles sets up the rotation matrix appropriately.
         MosaicRotation.rotationFromAngles(rmat, phi, MosaicRotation.CR_Z_AXIS, theta, MosaicRotation.CR_Y_AXIS);
     }
 

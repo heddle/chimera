@@ -43,7 +43,7 @@ public class Mosaic extends BaseMDIApplication {
 	public static boolean monochrome = false;
 
 
-	// chimera release
+	// mosaic release
 	private static final String RELEASE = "0.1";
 
 	private MonteCarloDialog _monteCarloDialog;

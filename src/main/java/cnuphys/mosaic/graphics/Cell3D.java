@@ -28,7 +28,7 @@ import item3D.Item3D;
 /**
  * A 3D item that displays a single Cell.
  * <p>
- * This class accepts a Cell (which you may have obtained from a ChimeraGrid)
+ * This class accepts a Cell (which you may have obtained from a MosaicGrid)
  * and displays the cell with its 12 edges drawn. In addition, for each
  * intersecting edge (the Edge objects stored in the cell) a small red marker is
  * drawn at the sphere intersection. Also, for every cell corner that is inside
@@ -60,7 +60,7 @@ public class Cell3D extends Item3D {
 	private boolean drawPrepatch = true;
 
 	/**
-	 * Constructs a ChimeraCell3D.
+	 * Constructs a Cell3D.
 	 *
 	 * @param panel the Panel3D on which to draw this item.
 	 * @param cell  the Cell to be displayed.

@@ -14,7 +14,6 @@ import java.util.EventListener;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -41,7 +40,7 @@ import cnuphys.mosaic.grid.Cell;
 public class CellTablePanel extends JPanel {
 
     // The header labels for the table (excluding the row header).
-    private static final String[] COLUMN_NAMES = {"   Nx", "   Ny", "   Nz", "   Type"};
+    private static final String[] COLUMN_NAMES = {"   Nx", "   Ny", "   Nz", "   Type", "   Polar"};
 
     // The table model.
     private CellTableModel tableModel;
@@ -91,6 +90,13 @@ public class CellTablePanel extends JPanel {
             String str2 = (String) s2;
             return str1.compareTo(str2);
         });
+        
+        rowSorter.setComparator(4, (s1, s2) -> {
+            String str1 = (String) s1;
+            String str2 = (String) s2;
+            return str1.compareTo(str2);
+        });
+
 
         // Get the table header.
         JTableHeader header = table.getTableHeader();
@@ -131,6 +137,12 @@ public class CellTablePanel extends JPanel {
                     sortKeys.add(new RowSorter.SortKey(3, SortOrder.ASCENDING));
                     rowSorter.setSortKeys(sortKeys);
                 }
+                else if (modelColumn == 4) {
+                    List<RowSorter.SortKey> sortKeys = new ArrayList<>();
+                    sortKeys.add(new RowSorter.SortKey(4, SortOrder.ASCENDING));
+                    rowSorter.setSortKeys(sortKeys);
+                }
+
             }
         });
 
@@ -251,26 +263,28 @@ public class CellTablePanel extends JPanel {
             return COLUMN_NAMES[column];
         }
 
-        @Override
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            Cell cell = cells.get(rowIndex);
-            switch (columnIndex) {
-                case 0:
-                    return cell.nx;
-                case 1:
-                    return cell.ny;
-                case 2:
-                    return cell.nz;
-                case 3:
-                    int type = cell.getIntersectionType();
-                    if (type < 0 || type >= Cell.intersectionTypes.length) {
-                        return "unknown";
-                    }
-                    return Cell.intersectionTypes[type];
-                default:
-                    return "";
-            }
-        }
+		@Override
+		public Object getValueAt(int rowIndex, int columnIndex) {
+			Cell cell = cells.get(rowIndex);
+			switch (columnIndex) {
+			case 0:
+				return cell.nx;
+			case 1:
+				return cell.ny;
+			case 2:
+				return cell.nz;
+			case 3:
+				int type = cell.getIntersectionType();
+				if (type < 0 || type >= Cell.intersectionTypes.length) {
+					return "unknown";
+				}
+				return Cell.intersectionTypes[type];
+			case 4:
+				return cell.poleEnclosedString();
+			default:
+				return "";
+			}
+		}
 
         @Override
         public Class<?> getColumnClass(int columnIndex) {
@@ -280,6 +294,7 @@ public class CellTablePanel extends JPanel {
                 case 2:
                     return Integer.class;
                 case 3:
+                case 4:
                     return String.class;
                 default:
                     return Object.class;

@@ -7,10 +7,9 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/commons-math3-3.6.1.jar"/>
-	<classpathentry kind="lib" path="lib/gluegen-rt.jar"/>
-	<classpathentry kind="lib" path="lib/jogl-all.jar"/>
 	<classpathentry kind="lib" path="lib/bCNU.jar"/>
-	<classpathentry kind="lib" path="lib/bCNU3D.jar"/>
 	<classpathentry kind="lib" path="lib/bcnuimages.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/JOGL"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/bCNU3D"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

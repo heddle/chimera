@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cnuphys.bCNU.util.Bits;
-import cnuphys.mosaic.curve.Patch;
+import cnuphys.mosaic.patch.Patch;
+import cnuphys.mosaic.patch.Prepatch;
+import cnuphys.mosaic.patch.ThetaPatch;
 import cnuphys.mosaic.util.ClosestPointToOrigin;
 import cnuphys.mosaic.util.Point3D;
 /**
@@ -15,63 +17,114 @@ import cnuphys.mosaic.util.Point3D;
  */
 public class MosaicGrid {
     
-    private final CartesianGrid cartesianGrid;
-    private final SphericalGrid sphericalGrid;
+	//the two comprising grids
+    private final CartesianGrid _cartesianGrid;
+    private final SphericalGrid _sphericalGrid;
     
     //the list of all intersecting cells
-    private List<Cell> intersectingCells = new ArrayList<>();
+    private List<Cell> _intersectingCells = new ArrayList<>();
     
-    private List<Patch> _prePatches = new ArrayList<>();
+    //prepatches from the intersecting cell
+    private List<Prepatch> _prePatches = new ArrayList<>();
+    
+    //theta patches from theta splicing the prepatches
+
+    private List<ThetaPatch> _thetaPatches = new ArrayList<>();
+    
+    //the final patches from phi splicing the theta patches
+    private List<Patch> _patches = new ArrayList<>();
 
     public MosaicGrid(CartesianGrid cartesianGrid, SphericalGrid sphericalGrid) {
-        this.cartesianGrid = new CartesianGrid(cartesianGrid); 
-        this.sphericalGrid = new SphericalGrid(sphericalGrid);
-    }
-
-    public MosaicGrid(MosaicGrid other) {
-        this.cartesianGrid = new CartesianGrid(other.cartesianGrid);
-        this.sphericalGrid = new SphericalGrid(other.sphericalGrid);
-        this.intersectingCells = new ArrayList<>(other.intersectingCells);
+        _cartesianGrid = new CartesianGrid(cartesianGrid); 
+        _sphericalGrid = new SphericalGrid(sphericalGrid);
     }
     
+	/**
+	 * Get the Cartesian grid
+	 * 
+	 * @return the Cartesian grid
+	 */
 	public CartesianGrid getCartesianGrid() {
-		return cartesianGrid;
+		return _cartesianGrid;
 	}
 	
+	/**
+	 * Get the spherical grid
+	 * 
+	 * @return the spherical grid
+	 */
 	public SphericalGrid getSphericalGrid() {
-		return sphericalGrid;
+		return _sphericalGrid;
 	}
 
+	/**
+	 * Get the intersecting cells
+	 * 
+	 * @return the intersecting cells
+	 */
 	public List<Cell> getIntersectingCells() {
-		return intersectingCells;
+		return _intersectingCells;
+	}
+	
+	/**
+	 * Get the prepatches
+	 * 
+	 * @return the prepatches
+	 */
+	public List<Prepatch> getPrePatches() {
+		return _prePatches;
+	}
+	
+	/**
+	 * Get the theta patches
+	 * 
+	 * @return the theta patches
+	 */
+	public List<ThetaPatch> getThetaPatches() {
+		return _thetaPatches;
+	}
+	
+	/**
+	 * Get the patches
+	 * 
+	 * @return the patches
+	 */
+	public List<Patch> getPatches() {
+		return _patches;
 	}
 
+	/**
+	 * Reset to initial states, clearing all lists
+	 */
     public void reset() {
-        intersectingCells.clear();
+        _intersectingCells.clear();
+        _prePatches.clear();
+        _thetaPatches.clear();
+        _patches.clear();
     }
 
 	/**
 	 * Identifies the Cartesian grid cells that intersect the sphere defined by the
-	 * SphericalGrid.
+	 * SphericalGrid. This is the first step of the algorithm.
 	 */
     
     int kisscount = 0;
     public void findIntersectingCells() {
         reset();
 
-        double radius = sphericalGrid.getRadius();
+        double radius = _sphericalGrid.getRadius();
         double rSquared = radius * radius;
 
         //get the bulk limits for efficiency
-        int[] xBulkLims = cartesianGrid.getXGrid().bulkFilterLimits(radius);
-        int[] yBulkLims = cartesianGrid.getYGrid().bulkFilterLimits(radius);
-        int[] zBulkLims = cartesianGrid.getZGrid().bulkFilterLimits(radius);
+        int[] xBulkLims = _cartesianGrid.getXGrid().bulkFilterLimits(radius);
+        int[] yBulkLims = _cartesianGrid.getYGrid().bulkFilterLimits(radius);
+        int[] zBulkLims = _cartesianGrid.getZGrid().bulkFilterLimits(radius);
 
 		for (int iz = zBulkLims[0]; iz <= zBulkLims[1]; iz++) {
 			for (int iy = yBulkLims[0]; iy <= yBulkLims[1]; iy++) {
 				for (int ix = xBulkLims[0]; ix <= xBulkLims[1]; ix++) {
 					
-					double[][] cellCorners = GridSupport.getCellCorners(cartesianGrid, ix, iy, iz);
+					double[][] cellCorners = GridSupport.getCellCorners(_cartesianGrid, ix, iy, iz);
 
 			        int cornerBits = 0;
 					boolean hasInside = false;
@@ -95,9 +148,9 @@ public class MosaicGrid {
                     //if no traditional intersection, must do the kiss test!
                     //for cells with no inside points
                     if (hasInside && hasOutside) {
-                    	Cell cell = new Cell(cartesianGrid, ix, iy, iz, cornerBits, radius);
-                        intersectingCells.add(cell);
-                        Patch prePatch = new Patch(cell.getBoundaryCurves(), ix, iy, iz, -1, -1);
+                    	Cell cell = new Cell(_cartesianGrid, ix, iy, iz, cornerBits, radius);
+                        _intersectingCells.add(cell);
+                        Prepatch prePatch = new Prepatch(_cartesianGrid, _sphericalGrid, cell.getBoundaryCurves(), ix, iy, iz);
                         _prePatches.add(prePatch);
                         cell.setPrepatch(prePatch);
                     }
@@ -105,21 +158,21 @@ public class MosaicGrid {
 						Point3D.Double closestPoint = new Point3D.Double();
 						int kissFace = kissTest(cellCorners, radius, closestPoint);
 						if (kissFace >= 0) {
-							Cell kissCell = new Cell(cartesianGrid, ix, iy, iz, cornerBits, radius);
+							Cell kissCell = new Cell(_cartesianGrid, ix, iy, iz, cornerBits, radius);
 							kissCell.setClosestPoint(closestPoint);
-							intersectingCells.add(kissCell);
+							_intersectingCells.add(kissCell);
 						}
 					}
 
 				} //x
             }// y
         } //z
-        System.out.println("Intersecting cells count: " + intersectingCells.size());
-        Cell.report(intersectingCells);
+        System.out.println("Intersecting cells count: " + _intersectingCells.size());
+        Cell.report(_intersectingCells);
         
-        //total area of the patches
+        //total area of the pre patches
         double totalArea = 0;
-		for (Patch patch : _prePatches) {
+		for (Prepatch patch : _prePatches) {
 			double patchArea = patch.areaEstimate(5);
 			totalArea += patchArea;
 		}

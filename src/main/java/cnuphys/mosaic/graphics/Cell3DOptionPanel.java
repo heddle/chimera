@@ -5,8 +5,8 @@ import cnuphys.mosaic.graphics.OptionPanel.OptionPanelCallback;
 
 public class Cell3DOptionPanel extends OptionPanel implements OptionPanelCallback {
 	
-	private static String[] labels = {"Monochrome", "Spherical Polygon Points", "Theta Intersections", "Phi Intersections", "Curve Numbering"};
-	private static boolean[] selected = {false, false, false, false, true};
+	private static String[] labels = {"Monochrome", "Spherical Polygon Points", "Theta Intersections", "Phi Intersections", "Curve Numbering", "Bounding Box"};
+	private static boolean[] selected = {false, false, false, false, true, false};
 	private Panel3D panel3D;
 	
 	public Cell3DOptionPanel(Panel3D panel3D) {
@@ -38,5 +38,10 @@ public class Cell3DOptionPanel extends OptionPanel implements OptionPanelCallbac
 	public boolean isCurveNumbering() {
 		return isSelected(4);
 	}
+	
+	public boolean isBoundingBox() {
+		return isSelected(5);
+	}
+
 
 }

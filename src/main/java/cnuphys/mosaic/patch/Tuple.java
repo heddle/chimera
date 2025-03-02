@@ -1,0 +1,90 @@
+package cnuphys.mosaic.patch;
+
+public class Tuple {
+	
+	private int[] indices;
+	private int length;
+	
+
+	/**
+     * Constructor for the Tuple class. The number of indices must be 3, 4, or 5.
+     * A prepatch tuple has three indices, a thetapatch tuple has four indices, 
+     * and a patch tuple has five indices.
+     *
+     * @param indices the indices of the tuple
+     * @throws IllegalArgumentException if the number of indices is not 3, 4, or 5
+     */
+	public Tuple(int... indices) {
+		set(indices);
+	}
+	
+	/**
+	 * Does the given indices match the tuple?
+	 * @param indices the indices
+	 * @return <code>true</code> if the indices match
+	 */
+	public boolean matches(int... indices) {
+		int len = indices.length;
+		if (len != length) {
+			throw new IllegalArgumentException("Wrong number of tuple indices");
+		}
+
+		for (int i = 0; i < len; i++) {
+			if (this.indices[i] != indices[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * Get the indices of the tuple
+	 * 
+	 * @return the indices
+	 */
+	public int[] getIndices() {
+		return indices;
+	}
+	
+	/**
+	 * Set the indices of the tuple, overriding any existing indices.
+	 * 
+	 * @param indices the indices
+	 */
+	public void set(int... indices) {
+		int len = indices.length;
+		if (len < 3 || len > 5) {
+			(new IllegalArgumentException("A Tuple must have 3, 4, or 5 five indices.")).printStackTrace();
+			System.exit(1);
+		}
+		this.length = len;
+		this.indices = indices;
+	}
+	
+	
+    // Override equals to compare the contents of the tuple
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+			return true;
+		}
+        if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
+		Tuple other = (Tuple) obj;
+		if (other.length != length) {
+			return false;
+		}
+
+		for (int i = 0; i < length; i++) {
+			if (other.indices[i] != indices[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	
+	
+
+}

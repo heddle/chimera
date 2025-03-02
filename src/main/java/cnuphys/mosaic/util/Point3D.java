@@ -4,12 +4,10 @@ package cnuphys.mosaic.util;
  * A class to represent a 3D point in space.
  * Also used to represent a 3D vector.
  */
- 
+
 import java.io.Serializable;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
-
-import cnuphys.mosaic.grid.MosaicGrid;
 
 public class Point3D implements Serializable {
     public static class Double implements Serializable {
@@ -36,7 +34,7 @@ public class Point3D implements Serializable {
             this.y = y;
             this.z = z;
         }
-        
+
 		/**
 		 * Constructs a Point3D.Double with the specified coordinates.
 		 *
@@ -58,7 +56,7 @@ public class Point3D implements Serializable {
             this.y = y;
             this.z = z;
         }
-        
+
         /**
          * The length of the vector from the origin to this point.
          * @return The length of the vector.
@@ -66,6 +64,30 @@ public class Point3D implements Serializable {
         public double length() {
             return Math.sqrt(x * x + y * y + z * z);
         }
+
+        /**
+         * The square of the distance between two points.
+         * @param a one point
+         * @param b the other point
+         * @return The square of the distance.
+         */
+        public static double distanceSq(Point3D.Double a, Point3D.Double b) {
+			double dx = a.x - b.x;
+			double dy = a.y - b.y;
+			double dz = a.z - b.z;
+			return dx * dx + dy * dy + dz * dz;
+        }
+
+		/**
+		 * The distance between two points.
+		 *
+		 * @param a one point
+		 * @param b the other point
+		 * @return The distance.
+		 */
+		public static double distance(Point3D.Double a, Point3D.Double b) {
+			return Math.sqrt(distanceSq(a, b));
+		}
 
         @Override
         public String toString() {
@@ -85,48 +107,48 @@ public class Point3D implements Serializable {
                    java.lang.Double.compare(y, other.y) == 0 &&
                    java.lang.Double.compare(z, other.z) == 0;
         }
-        
+
         /**
          * The dot product of two vectors.
          * @param a one vector
          * @param b the other vector
          * @return  The dot product.
          */
-		public static double dotProduct(Double a, Double b) {
+		public static double dotProduct(Point3D.Double a, Point3D.Double b) {
 			return a.x * b.x + a.y * b.y + a.z * b.z;
 		}
-		
+
 		/**
 		 * The dot product of this vector with another
 		 * @param other the other vector
 		 * @return The dot product.
 		 */
-		public double dot(Double other) {
+		public double dot(Point3D.Double other) {
 			return dotProduct(this, other);
         }
-		
+
 		/**
 		 * The cross product
 		 * @param a one vector
 		 * @param b the other vector
 		 * @param result the result vector
 		 */
-		public static void crossProduct(Double a, Double b, Double result) {
+		public static void crossProduct(Point3D.Double a, Point3D.Double b, Point3D.Double result) {
 			result.x = a.y * b.z - a.z * b.y;
             result.y = a.z * b.x - a.x * b.z;
             result.z = a.x * b.y - a.y * b.x;
 		}
-		
+
 		/**
 		 * The cross product of this vector with another
-		 * 
+		 *
 		 * @param b      the other vector
 		 * @param result the result vector
 		 */
-		public void cross(Double b, Double result) {
+		public void cross(Point3D.Double b, Point3D.Double result) {
 			crossProduct(this, b, result);
 		}
-		
+
 	    /**
 	     * Subtracts vector b from vector a and stores the result in 'result'.
 	     *
@@ -139,7 +161,7 @@ public class Point3D implements Serializable {
 	        result.y = a.y - b.y;
 	        result.z = a.z - b.z;
 	    }
-	    
+
 		/**
 		 * Subtracts vector b from this vector and stores the result in 'result'.
 		 *
@@ -167,7 +189,7 @@ public class Point3D implements Serializable {
         public int hashCode() {
             return java.util.Objects.hash(x, y, z);
         }
-        
+
         /**
          * Converts this Point3D.Double to a common maths normalized 3D vector
          * @return a normalized 3D vector
@@ -177,4 +199,6 @@ public class Point3D implements Serializable {
 			return v.normalize();
 		}
     }
+
+
 }

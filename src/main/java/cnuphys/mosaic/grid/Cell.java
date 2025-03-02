@@ -6,8 +6,8 @@ import java.util.Objects;
 
 import cnuphys.bCNU.util.Bits;
 import cnuphys.mosaic.curve.GeneralCurve;
-import cnuphys.mosaic.curve.Patch;
 import cnuphys.mosaic.curve.PoleEnclosureChecker;
+import cnuphys.mosaic.patch.Prepatch;
 import cnuphys.mosaic.util.MosaicPlane;
 import cnuphys.mosaic.util.Point3D;
 
@@ -28,6 +28,9 @@ public class Cell {
 	public static final int kiss = 8;
 
 	public static final int polar = 99; //polar is an attribute, not another type
+	
+	private static final String[] poleEnclosedStrings = {"No", "North Pole", "South Pole"};
+
 
 	public static int allTypes = -1;
 
@@ -65,8 +68,8 @@ public class Cell {
 	//closest point (just inside) if this is a kiss
 	public Point3D.Double closestPoint;
 	
-	//associated prePatch
-	private Patch prepatch;
+	//associated prepatch
+	private Prepatch prepatch;
 
 	/**
 	 * Constructor for the Cell class.
@@ -111,11 +114,19 @@ public class Cell {
 	}
 	
 	/**
+	 * Get the pole enclosed string
+	 * @return the pole enclosed
+	 */
+	public String poleEnclosedString() {
+		return poleEnclosedStrings[poleEnclosed];
+	}
+	
+	/**
 	 * Get the associated prePatch
 	 * 
 	 * @return the associated prePatch
 	 */
-	public Patch getPrepatch() {
+	public Prepatch getPrepatch() {
 		return prepatch;
 	}
 
@@ -123,8 +134,8 @@ public class Cell {
 	 * Set the associated prePatch
 	 * @param prePatch the prePatch to set
 	 */
-	public void setPrepatch(Patch prePatch) {
-		this.prepatch = prePatch;
+	public void setPrepatch(Prepatch prepatch) {
+		this.prepatch = prepatch;
 	}
 	
 	/**

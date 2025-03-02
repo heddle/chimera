@@ -9,7 +9,7 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
 import cnuphys.mosaic.frame.Mosaic;
-import cnuphys.mosaic.grid.Fivetuple;
+import cnuphys.mosaic.patch.Tuple;
 
 public class MonteCarlo {
 
@@ -25,7 +25,7 @@ public class MonteCarlo {
 		// Disable the button while running
 		progressBar.setValue(0);
 		List<MonteCarloPoint> points = Mosaic.getInstance().getMonteCarloPoints();
-		HashSet<Fivetuple> seenTuples = Mosaic.getInstance().getMonteCarloSeenSet();
+		HashSet<Tuple> seenTuples = Mosaic.getInstance().getMonteCarloSeenSet();
 		if (clear) {
 			points.clear();
 		}
@@ -40,7 +40,7 @@ public class MonteCarlo {
 					points.add(point);
 
                     // Add the tuple to the seen set
-					seenTuples.add(point.fiveplet);
+					seenTuples.add(point.tuple);
 
 					// Publish progress
 					if (i % (numPoints / 100) == 0) { // Update progress every 1%

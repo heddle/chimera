@@ -24,13 +24,14 @@ import cnuphys.bCNU.util.PropertySupport;
 import cnuphys.mosaic.graphics.Cell3D;
 import cnuphys.mosaic.graphics.CellTablePanel;
 import cnuphys.mosaic.graphics.MosaicGridPanel3D;
+import cnuphys.mosaic.grid.CartesianGrid;
 import cnuphys.mosaic.grid.Cell;
-import cnuphys.mosaic.grid.Fivetuple;
 import cnuphys.mosaic.grid.MosaicGrid;
 import cnuphys.mosaic.grid.SphericalGrid;
 import cnuphys.mosaic.grid.TestGrid;
 import cnuphys.mosaic.monteCarlo.MonteCarloDialog;
 import cnuphys.mosaic.monteCarlo.MonteCarloPoint;
+import cnuphys.mosaic.patch.Tuple;
 
 @SuppressWarnings("serial")
 public class Mosaic extends BaseMDIApplication {
@@ -55,7 +56,7 @@ public class Mosaic extends BaseMDIApplication {
 	private List<MonteCarloPoint> _points = new ArrayList<>();
 
 	 // HashSet to store unique 5-plets
-    private final HashSet<Fivetuple> _seenTuples = new HashSet<>();
+    private final HashSet<Tuple> _seenTuples = new HashSet<>();
 
 	//2D MC view
 	private MonteCarloView2D _mc2DView;
@@ -136,6 +137,15 @@ public class Mosaic extends BaseMDIApplication {
 	public SphericalGrid getSphericalGrid() {
         return _mosaicGrid.getSphericalGrid();
 	}
+	
+	/**
+	 * Get the Cartesian grid
+	 * 
+	 * @return the cartesian grid
+	 */
+	public CartesianGrid getCartesianGrid() {
+		return _mosaicGrid.getCartesianGrid();
+	}
 
 
 	/**
@@ -157,7 +167,7 @@ public class Mosaic extends BaseMDIApplication {
 	 * Get the current monte carlo patch counts
 	 * @return the current monte carlo patch counts
 	 */
-	public HashSet<Fivetuple> getMonteCarloSeenSet() {
+	public HashSet<Tuple> getMonteCarloSeenSet() {
 		return _seenTuples;
 	}
 

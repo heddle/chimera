@@ -6,17 +6,13 @@ import cnuphys.mosaic.curve.GeneralCurve;
 import cnuphys.mosaic.grid.CartesianGrid;
 import cnuphys.mosaic.grid.SphericalGrid;
 
-/**
- * Represents a closed patch formed by a sequence of Curve objects.
- * This is the "full and final" patch that is used in the Mosaic algorithm.
- */
+public class ThetaPatch extends BasePatch {
 
-public class Patch extends BasePatch {
 
     
- 
+	 
     /**
-     * Constructs a Patch from a list of Curve objects.
+     * Constructs a ThetaPatch from a list of Curve objects.
      * 
      * @param cartGrid The Cartesian grid
      * @param sphGrid The Spherical grid
@@ -25,29 +21,26 @@ public class Patch extends BasePatch {
      * @param ny The y rectangular grid index
      * @param nz The z rectangular grid index
      * @param ntheta The theta spherical grid index
-     * @param nphi The phi spherical grid index
      * @throws IllegalArgumentException if the curves do not form a closed loop.
      */
-    public Patch(CartesianGrid cartGrid, SphericalGrid sphGrid, List<GeneralCurve> curves, int nx, int ny, int nz, int ntheta, int nphi) {
-		super(cartGrid, sphGrid, curves, nx, ny, nz, ntheta, nphi);
+    public ThetaPatch(CartesianGrid cartGrid, SphericalGrid sphGrid, List<GeneralCurve> curves, int nx, int ny, int nz, int ntheta) {
+		super(cartGrid, sphGrid, curves, nx, ny, nz, ntheta);
 	}
- 
+    
     /**
-     * Is a given point contained in this Patch?
+     * Is a given point contained in this ThetaPatch?
      * @param x the x coordinate
      * @param y the y coordinate
      * @param z the z coordinate
      * @param theta the theta coordinate
-     * @param phi the phi coordinate
-     * @return <code>true</code> if the point is contained in the patch
+     * @return <code>true</code> if the point is contained in the theta patch
      */
-	public boolean containsPoint(double x, double y, double z, double theta, double phi) {
+	public boolean containsPoint(double x, double y, double z, double theta) {
 		int ix = xGrid.locateInterval(x);
 		int iy = yGrid.locateInterval(y);
 		int iz = zGrid.locateInterval(z);
 		int itheta = thetaGrid.locateInterval(theta);
-		int iphi = phiGrid.locateInterval(phi);
-		return tuple.matches(ix, iy, iz, itheta, iphi);
+		return tuple.matches(ix, iy, iz, itheta);
 	}
-}
 
+}

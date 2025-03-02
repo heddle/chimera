@@ -14,12 +14,16 @@ import bCNU3D.Panel3D;
 import bCNU3D.Support3D;
 import cnuphys.bCNU.dialog.SimpleDialog;
 import cnuphys.mosaic.curve.GeneralCurve;
-import cnuphys.mosaic.curve.Patch;
+import cnuphys.mosaic.curve.TValue;
+import cnuphys.mosaic.curve.ThetaCurve;
 import cnuphys.mosaic.grid.CartesianGrid;
 import cnuphys.mosaic.grid.Cell;
 import cnuphys.mosaic.grid.Edge;
 import cnuphys.mosaic.grid.GridSupport;
 import cnuphys.mosaic.grid.MosaicGrid;
+import cnuphys.mosaic.patch.Patch;
+import cnuphys.mosaic.patch.Prepatch;
+import cnuphys.mosaic.patch.ThetaSplicer;
 import cnuphys.mosaic.util.PanelKeys;
 import cnuphys.mosaic.util.Point3D;
 import cnuphys.mosaic.util.ThetaPhi;
@@ -56,6 +60,7 @@ public class Cell3D extends Item3D {
 	boolean _showSphere;
 	boolean _showClip;
 	float _markerSize = 5f;
+	boolean _annotations;
 
 	private boolean drawPrepatch = true;
 
@@ -65,9 +70,10 @@ public class Cell3D extends Item3D {
 	 * @param panel the Panel3D on which to draw this item.
 	 * @param cell  the Cell to be displayed.
 	 */
-	public Cell3D(Panel3D panel, Cell cell, boolean translate, boolean showSphere, boolean showClip,
+	public Cell3D(Panel3D panel, Cell cell, boolean annotations, boolean translate, boolean showSphere, boolean showClip,
 			float markerSize) {
 		super(panel);
+		_annotations = annotations;
 		_translate = translate;
 		_showSphere = showSphere;
 		_markerSize = markerSize;
@@ -140,7 +146,7 @@ public class Cell3D extends Item3D {
 				Point3D.Double ip = edge.getIntersection();
 				if (ip != null) {
 					Color markerColor = Color.black;
-					if ((cell3DOptionPanel != null) && cell3DOptionPanel.isCurveNumbering()) {
+					if (_annotations && cell3DOptionPanel.isCurveNumbering()) {
 						Support3D.drawMarker(drawable, (float) ip.x, (float) ip.y, (float) ip.z, markerColor,
 								_markerSize, true, "" + index, .3f, Color.black);
 					} else {
@@ -162,7 +168,7 @@ public class Cell3D extends Item3D {
 					double rx = _corners[i][0];
 					double ry = _corners[i][1];
 					double rz = _corners[i][2];
-					Color color = (cell3DOptionPanel != null) && cell3DOptionPanel.isMonochrome() ? Color.white : Color.cyan; 
+					Color color = _annotations && cell3DOptionPanel.isMonochrome() ? Color.white : Color.cyan; 
 
 					Support3D.drawPoint(drawable, (float) rx, (float) ry, (float) rz, color, _markerSize+1, true);
 				}
@@ -179,18 +185,43 @@ public class Cell3D extends Item3D {
 			return;
 		}
 
-		Patch prepatch = _cell.getPrepatch();
+		Prepatch prepatch = _cell.getPrepatch();
 		if (prepatch == null) {
 			return;
 		}
 
 		//show some spherical polygon approximation points?
-		if ((cell3DOptionPanel != null) && cell3DOptionPanel.isSphericalPolygonPoints()) {
-			List<ThetaPhi> vertices = prepatch.getSpehericalVertices(5);
+		if (_annotations && cell3DOptionPanel.isSphericalPolygonPoints()) {
+			List<ThetaPhi> vertices = prepatch.getSphericalVertices(5);
 			for (ThetaPhi tp : vertices) {
 				Point3D.Double p = tp.toCartesian();
 				Color color = cell3DOptionPanel.isMonochrome() ? Color.black : Color.yellow; 
 				Support3D.drawPoint(drawable, (float) p.x, (float) p.y, (float) p.z, color, 5f);
+			}
+		}
+		
+		// draw bounding box
+		if (_annotations && cell3DOptionPanel.isBoundingBox()) {
+			Drawing.drawBoundingBox3D(drawable, prepatch, Color.gray, 10f);
+		}
+		
+		
+		if (_annotations && cell3DOptionPanel.isThetaIntersections()) {
+			
+//			List<ThetaCurve> thetaCurves = ThetaSplicer.findThetaCurves(prepatch);
+//			for (ThetaCurve tc : thetaCurves) {
+//				CurveDraw.curveDraw3D(drawable, tc, Color.green, 2f);
+//			}
+
+			
+			List<GeneralCurve> curves = prepatch.getCurves();
+			for (GeneralCurve curve : curves) {
+				List<TValue> tvals = curve.getThetaCrossings();
+				for (TValue tv : tvals) {
+					Point3D.Double p = curve.getPoint(tv.t);
+					Color color = cell3DOptionPanel.isMonochrome() ? Color.gray : Color.green;
+					Support3D.drawPoint(drawable, (float) p.x, (float) p.y, (float) p.z, color, 20f);
+				}
 			}
 		}
 
@@ -255,12 +286,11 @@ public class Cell3D extends Item3D {
 		gl.glDisable(GL2ES1.GL_CLIP_PLANE5);
 		gl.glPopAttrib();
 
-		Color curveColor = (cell3DOptionPanel != null) && cell3DOptionPanel.isMonochrome() ? Color.black : Color.red;
+		Color curveColor = _annotations && cell3DOptionPanel.isMonochrome() ? Color.black : Color.red;
 
 		List<GeneralCurve> curves = _cell.getBoundaryCurves();
 		for (GeneralCurve curve : curves) {
-			float[] points = curve.getPolyline(50);
-			Support3D.drawPolyLine(drawable, points, curveColor, 3f);
+			Drawing.curveDraw3D(drawable, curve, curveColor, 3f);
 		}
 
 //        Edge[] edges = _cell.getEdges();
@@ -360,7 +390,7 @@ public class Cell3D extends Item3D {
 			oneCellPanel3D = new Panel3D(thetaX, thetaY, thetaZ, xdist, ydist, zdist) {
 				@Override
 				public void createInitialItems() {
-					cell3D = new Cell3D(this, cell, true, true, true, 5f);
+					cell3D = new Cell3D(this, cell, true, true, true, true, 5f);
 					addItem(cell3D);
 				}
 
@@ -448,7 +478,7 @@ public class Cell3D extends Item3D {
 					boolean show = (showType == Cell.allTypes || type == showType
 							|| (showType == Cell.polar && (cell.getPoleEnclosed() != 0)));
 					if (show) {
-						Cell3D cell3D = new Cell3D(this, cell, false, first, false, 3f);
+						Cell3D cell3D = new Cell3D(this, cell, false, false, first, false, 3f);
 						first = false;
 						addItem(cell3D);
 					}

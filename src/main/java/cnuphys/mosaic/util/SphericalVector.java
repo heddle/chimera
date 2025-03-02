@@ -46,5 +46,16 @@ public class SphericalVector {
 		p.y = r * Math.sin(theta) * Math.sin(phi);
 		p.z = r * Math.cos(theta);
 	}
+	
+	/**
+	 * Convert to a cartesian point.
+	 * 
+	 * @return the cartesian point
+	 */
+	public Point3D.Double toCartesian() {
+		Point3D.Double p = new Point3D.Double();
+		toCartesian(p);
+		return p;
+	}
 
 }

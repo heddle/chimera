@@ -3,7 +3,8 @@ package cnuphys.mosaic.grid;
 import java.util.Arrays;
 
 public class Grid1D {
-    private final double[] pts;
+    private final double[] _points;
+    private double _maxSpacing;
 
     /**
      * Constructor: Takes an array of grid points, sorts them in ascending order.
@@ -15,8 +16,9 @@ public class Grid1D {
             throw new IllegalArgumentException("Grid1D cannot be initialized with an empty array.");
         }
         // Copy the input array to avoid side-effects.
-        pts = Arrays.copyOf(points, points.length);
-        Arrays.sort(pts);
+        _points = Arrays.copyOf(points, points.length);
+        Arrays.sort(_points);
+        _maxSpacing = maxSpacing();
     }
 
     /**
@@ -24,15 +26,29 @@ public class Grid1D {
      * @param other The Grid1D instance to copy.
      */
     public Grid1D(Grid1D other) {
-        this.pts = Arrays.copyOf(other.pts, other.pts.length);
+    	this(other._points);
     }
 
+	/**
+	 * Returns the grid point at the specified index.
+	 * 
+	 * @param index The index of the grid point.
+	 * @return The grid point value.
+	 * @throws IndexOutOfBoundsException if the index is out of range.
+	 */
+	public double gridValue(int index) {
+		if (index < 0 || index >= _points.length) {
+			throw new IndexOutOfBoundsException("Index " + index + " is out of bounds for Grid1D.");
+		}
+		return _points[index];
+	}
+	
     /**
      * Returns the minimum grid point value.
      * @return The smallest value in the grid.
      */
     public double min() {
-        return pts[0];
+        return _points[0];
     }
 
     /**
@@ -40,7 +56,7 @@ public class Grid1D {
      * @return The largest value in the grid.
      */
     public double max() {
-        return pts[pts.length - 1];
+        return _points[_points.length - 1];
     }
 
     /**
@@ -53,15 +69,15 @@ public class Grid1D {
      */
     public int locateInterval(double value) {
         // Handle cases where the value is out of range
-        if (value < pts[0] || value > pts[pts.length - 1]) {
+        if (value < _points[0] || value > _points[_points.length - 1]) {
             return -1;
         }
 
-        int index = Arrays.binarySearch(pts, value);
+        int index = Arrays.binarySearch(_points, value);
 
         if (index >= 0) {
             // If it's the last element, no interval exists
-            return (index == pts.length - 1) ? pts.length - 2 : index;
+            return (index == _points.length - 1) ? _points.length - 2 : index;
         }
 
         // If not found, determine the insertion point
@@ -83,10 +99,49 @@ public class Grid1D {
      */
 	public double getAverageSpacing() {
 		double sum = 0;
-		for (int i = 1; i < pts.length; i++) {
-			sum += pts[i] - pts[i - 1];
+		for (int i = 1; i < _points.length; i++) {
+			sum += _points[i] - _points[i - 1];
 		}
-		return sum / (pts.length - 1);
+		return sum / (_points.length - 1);
+	}
+	
+	// Returns the maximum spacing between grid points.
+	private double maxSpacing() {
+		double max = 0;
+		for (int i = 1; i < _points.length; i++) {
+			double spacing = _points[i] - _points[i - 1];
+			if (spacing > max) {
+				max = spacing;
+			}
+		}
+		return max;
+	}
+	
+	/**
+	 * Returns the maximum spacing between grid points.
+	 * 
+	 * @return The maximum spacing between grid points.
+	 */
+	public double getMaxSpacing() {
+		return _maxSpacing;
+	}
+
+	/**
+	 * Returns the index of the closest grid point to the specified value.
+	 * 
+	 * @param value The value to search for.
+	 * @return The index of the closest grid point.
+	 */
+	public int closestIndex(double value) {
+		int index = locateInterval(value);
+		if (index == -1) {
+			return -1;
+		}
+		// If the value is closer to the next point, return the next index
+		if (index < _points.length - 1 && Math.abs(_points[index + 1] - value) < Math.abs(_points[index] - value)) {
+			return index + 1;
+		}
+		return index;
 	}
 
     /**
@@ -96,10 +151,10 @@ public class Grid1D {
      * @throws IndexOutOfBoundsException if the index is out of range.
      */
     public double valueAt(int index) {
-        if (index < 0 || index >= pts.length) {
+        if (index < 0 || index >= _points.length) {
             throw new IndexOutOfBoundsException("Index " + index + " is out of bounds for Grid1D.");
         }
-        return pts[index];
+        return _points[index];
     }
     
 	/**
@@ -108,7 +163,7 @@ public class Grid1D {
 	 * @return A copy of the grid points array.
 	 */
 	public double[] getPoints() {
-		return Arrays.copyOf(pts, pts.length);
+		return Arrays.copyOf(_points, _points.length);
 	}
 
     /**
@@ -116,7 +171,7 @@ public class Grid1D {
      * @return The number of grid points.
      */
     public int numPoints() {
-        return pts.length;
+        return _points.length;
     }
     
     /**

@@ -2,7 +2,7 @@ package cnuphys.mosaic.util;
 
 
 public class ClosestFacePoint {
-	
+
 	public static double TOL = 1.0e-6;
 
 	public static double[] closestPointOnFaceToOrigin(double[][] corners, double tol) {
@@ -63,10 +63,12 @@ public class ClosestFacePoint {
 
 	// A small clamp utility:
 	private static double clamp(double val, double minVal, double maxVal) {
-		if (val < minVal)
+		if (val < minVal) {
 			return minVal;
-		if (val > maxVal)
+		}
+		if (val > maxVal) {
 			return maxVal;
+		}
 		return val;
 	}
 
@@ -79,14 +81,18 @@ public class ClosestFacePoint {
 		for (int i = 0; i < 4; i++) {
 			double uVal = corners[i][u];
 			double vVal = corners[i][v];
-			if (uVal < minU)
+			if (uVal < minU) {
 				minU = uVal;
-			if (uVal > maxU)
+			}
+			if (uVal > maxU) {
 				maxU = uVal;
-			if (vVal < minV)
+			}
+			if (vVal < minV) {
 				minV = vVal;
-			if (vVal > maxV)
+			}
+			if (vVal > maxV) {
 				maxV = vVal;
+			}
 		}
 
 		minMaxU[0] = minU;

@@ -4,10 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cnuphys.bCNU.util.Bits;
-import cnuphys.mosaic.util.Point3D;
 
 public class GridSupport {
-	
+
 	//used for bitwise operations
 	public static final int CORNER0BIT = 01;
 	public static final int CORNER1BIT = 02;
@@ -17,13 +16,13 @@ public class GridSupport {
 	public static final int CORNER5BIT = 040;
 	public static final int CORNER6BIT = 0100;
 	public static final int CORNER7BIT = 0200;
-	
+
 	public static final int[] CORNERBITS = { CORNER0BIT, CORNER1BIT, CORNER2BIT, CORNER3BIT, CORNER4BIT, CORNER5BIT,
 			CORNER6BIT, CORNER7BIT };
 
 	/**
 	 * Get the indices of the corners of the given face.
-	 * 
+	 *
 	 * @param face [0, 5] for the faces of a cube. This assumes the canonical
 	 *             corner numbering scheme:
 	 *             <ol>
@@ -36,7 +35,7 @@ public class GridSupport {
 	 *             <li value="6">Corner 6 at (x0, y1, z1)</li>
 	 *             <li value="7">Corner 7 at (x1, y1, z1)</li>
 	 *             </ol>
-	 *             
+	 *
 	 *             The faces are numbered as follows:
 	 *             <ol>
 	 *             <li value="0">Face 0 (xy plane at z=z0)</li>
@@ -58,7 +57,7 @@ public class GridSupport {
             default -> throw new IllegalArgumentException("Invalid face index.");
         };
     }
-    
+
     /**
      * Returns the indices of the three faces on which the given corner lies.
      * The canonical numbering for the corners is assumed:
@@ -108,7 +107,7 @@ public class GridSupport {
 
         return new int[] { faceZ, faceY, faceX };
     }
-       
+
     /**
      * Returns the two face indices (as an int[2]) that the given edge is on.
      * The edge is specified by its canonical index (0-11) as defined by
@@ -137,12 +136,12 @@ public class GridSupport {
                 }
             }
         }
-        
+
         // There should be exactly two faces in common.
         if (commonFaces.size() != 2) {
             throw new IllegalArgumentException("Edge " + edgeIndex + " does not lie on exactly two faces.");
         }
-        
+
         // Convert the result to an int[] and return.
         int[] result = new int[2];
         result[0] = commonFaces.get(0);
@@ -150,7 +149,7 @@ public class GridSupport {
         return result;
     }
 
-    
+
     /**
      * Get the canonical edge index for the given pair of corners.
      * @param edge the pair of corners that define the edge. The corners are
@@ -165,7 +164,7 @@ public class GridSupport {
      *            <li value="6">Corner 6 at (x0, y1, z1)</li>
      *            <li value="7">Corner 7 at (x1, y1, z1)</li>
      *            </ol>
-     *            
+     *
      * @return the canonical edge index for the given pair of corners.
      */
     public static int[] getCornersOfEdges(int edge) {
@@ -182,13 +181,13 @@ public class GridSupport {
 		case 9 -> new int[] { 4, 6 };
 		case 10 -> new int[] { 5, 7 };
 		case 11 -> new int[] { 6, 7 };
-		
-		
+
+
 		default -> throw new IllegalArgumentException("Invalid edge index.");
 		};
     }
-    
-    
+
+
     /**
      * Determines which edges of the rectangular prism (cell) intersect the surface
      * of the sphere. An edge is intersecting if one of its corners is inside the sphere
@@ -198,16 +197,17 @@ public class GridSupport {
      * @return an array containing the indices (0-11) of the intersecting edges.
      */
     public static int[] findIntersectingEdges(int cornerBits) {
-    	
+
     	int numInside = Bits.countBits(cornerBits);
-    	if (numInside == 0)
-    		return new int[0];
+    	if (numInside == 0) {
+			return new int[0];
+		}
     	if (numInside > 7) {
     		System.err.println("findIntersectingEdges: too many inside corners");
     		System.exit(-1);
     	}
 
-  
+
         List<Integer> intersectingEdges = new ArrayList<>();
 
         // Loop over all 12 edges.
@@ -235,10 +235,10 @@ public class GridSupport {
         }
         return result;
     }
-    
+
 	/**
 	 * Get the canonical edge index for the given pair of corners.
-	 * 
+	 *
 	 * @param corner1 the first corner
 	 * @param corner2 the second corner
 	 * @return the canonical edge index for the given pair of corners.
@@ -304,11 +304,11 @@ public class GridSupport {
 		default -> -1;
 		};
 	}
-                    
-    
+
+
 	/**
 	 * Get the indices of the corners of the given face.
-	 * 
+	 *
 	 * @param corners the 8 cell corners stored as an array of 8 double arrays,
 	 *               each with 3 elements (x, y, z).
 	 * @param face    [0, 5] for the faces of a cube. This assumes the canonical
@@ -323,7 +323,7 @@ public class GridSupport {
 	 *                <li value="6">Corner 6 at (x0, y1, z1)</li>
 	 *                <li value="7">Corner 7 at (x1, y1, z1)</li>
 	 *                </ol>
-	 * 
+	 *
 	 *                The faces are numbered as follows:
 	 *                <ol>
 	 *                <li value="0">Face 0 (xy plane at z=z0)</li>
@@ -344,8 +344,8 @@ public class GridSupport {
 		}
 		return faceCorners;
 	}
-	
-	   
+
+
     /**
      * Compute the centroid of the face.
  	 * @param corners the 8 cell corners stored as an array of 8 double arrays,
@@ -366,14 +366,14 @@ public class GridSupport {
         centroid[2] /= 4.0;
         return centroid;
     }
- 
-	
+
+
 	/**
 	 * Get the indices of the corners of the given face.
 	 * @param corners the 8 cell corners stored as an array of 8 double arrays,
 	 *              each with 3 elements (x, y, z).
 	 * @param face [0, 5] for the faces of a cube. This assumes the canonical numbering.
-	 * @return the average distance squared of the face corners from the origin, 
+	 * @return the average distance squared of the face corners from the origin,
 	 * which is the center of the sphere.
 	 */
 	public static double faceAverageDistanceSquare(double[][] corners, int face) {
@@ -387,7 +387,7 @@ public class GridSupport {
 		}
 		return rsqsum / 4;
 	}
-	
+
 	/**
 	 * Get the face that is closest to the origin based on its centroid
 	 * @param corners the corners of the cell
@@ -397,29 +397,29 @@ public class GridSupport {
     	int closestFace = -1;
     	double minDist = Double.MAX_VALUE;
 		for (int face = 0; face < 6; face++) {
-			
-			double[] centroid = GridSupport.computeCentroid(corners, face); 
+
+			double[] centroid = GridSupport.computeCentroid(corners, face);
 			double distsq = centroid[0]*centroid[0] + centroid[1]*centroid[1] + centroid[2]*centroid[2];
-			
-			
+
+
 //			double distsq = GridSupport.faceAverageDistanceSquare(corners, face);
 			if (distsq < minDist) {
 				minDist = distsq;
 				closestFace = face;
 			}
 		}
-        return closestFace;		
+        return closestFace;
 	}
-	
-	
-	
-	
+
+
+
+
     /**
      * Returns the Cartesian coordinates of the corners of the cell at the given indices.
      * @param ix the index of the smaller x coordinate
      * @param iy the index of the smaller y coordinate
      * @param iz the index of the smaller z coordinate
-     * @return the Cartesian coordinates of the eight cell corners. The corners 
+     * @return the Cartesian coordinates of the eight cell corners. The corners
      * are ordered in the canonical numbering as follows:
      * <ol>
      * <li value="0">Corner 0 at (x0, y0, z0)</li>
@@ -442,11 +442,11 @@ public class GridSupport {
         Grid1D xGrid = cartesianGrid.getXGrid();
         Grid1D yGrid = cartesianGrid.getYGrid();
         Grid1D zGrid = cartesianGrid.getZGrid();
-        
+
         double x0 = xGrid.valueAt(ix);
         double y0 = yGrid.valueAt(iy);
         double z0 = zGrid.valueAt(iz);
-        
+
         double x1 = xGrid.valueAt(ix + 1);
         double y1 = yGrid.valueAt(iy + 1);
         double z1 = zGrid.valueAt(iz + 1);
@@ -463,7 +463,7 @@ public class GridSupport {
 
         return corners;
     }
-    
+
     /**
      * Get the Cartesian coordinates of the corner of the cell at the given indices.
      * @param cartesianGrid the Cartesian grid

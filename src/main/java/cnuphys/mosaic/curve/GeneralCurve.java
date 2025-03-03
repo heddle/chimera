@@ -1,14 +1,9 @@
 package cnuphys.mosaic.curve;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.integration.SimpsonIntegrator;
 
-import cnuphys.mosaic.frame.Mosaic;
 import cnuphys.mosaic.grid.Cell;
-import cnuphys.mosaic.grid.SphericalGrid;
 import cnuphys.mosaic.util.Point3D;
 
 /**
@@ -20,6 +15,8 @@ public class GeneralCurve extends BaseCurve {
 
 
 	private static final int INTEGRATION_MAX_EVAL = 1000;
+
+	private Cell cell;
 
 	// The face number of the cell in the range [0, 5]
 	//only relevant for GENERAL curves. By construction they are simultaneously on
@@ -40,8 +37,18 @@ public class GeneralCurve extends BaseCurve {
 	 */
 	public GeneralCurve(Cell cell, int face, Point3D.Double p0, Point3D.Double p1, double R) {
 		super(p0, p1, R);
+		this.cell = cell;
 		this.face = face;
 	}
+
+	/**
+	 * Get a copy of the curve but with the endpoints reversed.
+	 * @return a reversed copy of the curve
+	 */
+	@Override
+    public BaseCurve reverse() {
+		return new GeneralCurve(cell, face, p1, p0, R);
+    }
 
 	/**
 	 * Get the path length of the curve
@@ -175,8 +182,20 @@ public class GeneralCurve extends BaseCurve {
 		}
 		return null;
 	}
-	
 
-	
-	
+	/**
+	 * Split the curve at a given parameter value.
+	 *
+	 * @param t the parameter value
+	 * @return an array of two curves
+	 */
+	@Override
+	public  BaseCurve[] split(double t) {
+		Point3D.Double p = getPoint(t);
+        GeneralCurve c0 = new GeneralCurve(cell, face, p0, p, R);
+        GeneralCurve c1 = new GeneralCurve(cell, face, p, p1, R);
+        return new BaseCurve[] {c0, c1};
+	}
+
+
 }

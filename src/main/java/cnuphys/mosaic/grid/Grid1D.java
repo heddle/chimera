@@ -31,7 +31,7 @@ public class Grid1D {
 
 	/**
 	 * Returns the grid point at the specified index.
-	 * 
+	 *
 	 * @param index The index of the grid point.
 	 * @return The grid point value.
 	 * @throws IndexOutOfBoundsException if the index is out of range.
@@ -42,7 +42,7 @@ public class Grid1D {
 		}
 		return _points[index];
 	}
-	
+
     /**
      * Returns the minimum grid point value.
      * @return The smallest value in the grid.
@@ -91,10 +91,10 @@ public class Grid1D {
         // The interval is between insertionPoint - 1 and insertionPoint
         return insertionPoint - 1;
     }
-    
+
     /**
      * Returns the average spacing between grid points.
-     * 
+     *
      * @return The average spacing between grid points
      */
 	public double getAverageSpacing() {
@@ -104,7 +104,7 @@ public class Grid1D {
 		}
 		return sum / (_points.length - 1);
 	}
-	
+
 	// Returns the maximum spacing between grid points.
 	private double maxSpacing() {
 		double max = 0;
@@ -116,10 +116,10 @@ public class Grid1D {
 		}
 		return max;
 	}
-	
+
 	/**
 	 * Returns the maximum spacing between grid points.
-	 * 
+	 *
 	 * @return The maximum spacing between grid points.
 	 */
 	public double getMaxSpacing() {
@@ -128,7 +128,7 @@ public class Grid1D {
 
 	/**
 	 * Returns the index of the closest grid point to the specified value.
-	 * 
+	 *
 	 * @param value The value to search for.
 	 * @return The index of the closest grid point.
 	 */
@@ -156,10 +156,10 @@ public class Grid1D {
         }
         return _points[index];
     }
-    
+
 	/**
 	 * Returns a copy of the grid points array.
-	 * 
+	 *
 	 * @return A copy of the grid points array.
 	 */
 	public double[] getPoints() {
@@ -173,9 +173,9 @@ public class Grid1D {
     public int numPoints() {
         return _points.length;
     }
-    
+
     /**
-     * Get bulk filter limits around an assumed sphere of 
+     * Get bulk filter limits around an assumed sphere of
      * a given radius and centered on the origin.
      * @param radius The radius of the sphere.
      * @return a set if indices [lower, upper] of grid points

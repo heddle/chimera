@@ -5,15 +5,13 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.util.List;
 
-import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.GL2ES1;
 import com.jogamp.opengl.GLAutoDrawable;
 
 import bCNU3D.Panel3D;
 import bCNU3D.Support3D;
 import cnuphys.bCNU.dialog.SimpleDialog;
-import cnuphys.mosaic.curve.GeneralCurve;
+import cnuphys.mosaic.curve.BaseCurve;
 import cnuphys.mosaic.curve.TValue;
 import cnuphys.mosaic.curve.ThetaCurve;
 import cnuphys.mosaic.grid.CartesianGrid;
@@ -21,9 +19,8 @@ import cnuphys.mosaic.grid.Cell;
 import cnuphys.mosaic.grid.Edge;
 import cnuphys.mosaic.grid.GridSupport;
 import cnuphys.mosaic.grid.MosaicGrid;
-import cnuphys.mosaic.patch.Patch;
 import cnuphys.mosaic.patch.Prepatch;
-import cnuphys.mosaic.patch.ThetaSplicer;
+import cnuphys.mosaic.patch.ThetaPatch;
 import cnuphys.mosaic.util.PanelKeys;
 import cnuphys.mosaic.util.Point3D;
 import cnuphys.mosaic.util.ThetaPhi;
@@ -43,6 +40,9 @@ import item3D.Item3D;
  * the cell center is at the origin.
  */
 public class Cell3D extends Item3D {
+
+	private static final Color prepatchColor = new Color(0, 0, 196, 80);
+	private static final Color thetaPatchColor = new Color(0, 196, 0, 80);
 
 	// Static dialog-related fields for display; only one dialog instance is used.
 	private static Panel3D oneCellPanel3D;
@@ -131,7 +131,7 @@ public class Cell3D extends Item3D {
 
 		// Draw the sphere with different colors outside and inside the cell.
 		if (_showSphere) {
-			clipSphere(drawable, bounds, _showClip);
+			Support3D.wireSphere(drawable, 0f, 0f, 0f, (float) _radius, 50, 50, Color.gray);
 		}
 
 		int intType = _cell.getIntersectionType();
@@ -168,7 +168,7 @@ public class Cell3D extends Item3D {
 					double rx = _corners[i][0];
 					double ry = _corners[i][1];
 					double rz = _corners[i][2];
-					Color color = _annotations && cell3DOptionPanel.isMonochrome() ? Color.white : Color.cyan; 
+					Color color = _annotations && cell3DOptionPanel.isMonochrome() ? Color.white : Color.cyan;
 
 					Support3D.drawPoint(drawable, (float) rx, (float) ry, (float) rz, color, _markerSize+1, true);
 				}
@@ -190,143 +190,76 @@ public class Cell3D extends Item3D {
 			return;
 		}
 
+		//draw the prepatch
+		if (_annotations && cell3DOptionPanel.isPrepatch()) {
+			Drawing.drawPatch3D(drawable, prepatch, Color.black, prepatchColor, 3f);
+		}
+
+		if (_annotations && cell3DOptionPanel.isThetaPatches()) {
+			List<ThetaPatch> thetaPatches = prepatch.getThetaPatches();
+			System.out.println("ThetaPatches size: " + thetaPatches.size());
+			for (ThetaPatch tp : thetaPatches) {
+//				Drawing.drawPatch3D(drawable, tp, Color.black, thetaPatchColor, 3f);
+				Drawing.drawPatch3D(drawable, tp, Color.black, Drawing.randomColor(), 3f);
+			}
+		}
+
+
+
 		//show some spherical polygon approximation points?
 		if (_annotations && cell3DOptionPanel.isSphericalPolygonPoints()) {
 			List<ThetaPhi> vertices = prepatch.getSphericalVertices(5);
 			for (ThetaPhi tp : vertices) {
 				Point3D.Double p = tp.toCartesian();
-				Color color = cell3DOptionPanel.isMonochrome() ? Color.black : Color.yellow; 
+				Color color = cell3DOptionPanel.isMonochrome() ? Color.black : Color.yellow;
 				Support3D.drawPoint(drawable, (float) p.x, (float) p.y, (float) p.z, color, 5f);
 			}
 		}
-		
-		// draw bounding box
-		if (_annotations && cell3DOptionPanel.isBoundingBox()) {
-			Drawing.drawBoundingBox3D(drawable, prepatch, Color.gray, 10f);
-		}
-		
-		
-		if (_annotations && cell3DOptionPanel.isThetaIntersections()) {
-			
-//			List<ThetaCurve> thetaCurves = ThetaSplicer.findThetaCurves(prepatch);
-//			for (ThetaCurve tc : thetaCurves) {
-//				CurveDraw.curveDraw3D(drawable, tc, Color.green, 2f);
-//			}
 
-			
-			List<GeneralCurve> curves = prepatch.getCurves();
-			for (GeneralCurve curve : curves) {
-				List<TValue> tvals = curve.getThetaCrossings();
-				for (TValue tv : tvals) {
-					Point3D.Double p = curve.getPoint(tv.t);
-					Color color = cell3DOptionPanel.isMonochrome() ? Color.gray : Color.green;
-					Support3D.drawPoint(drawable, (float) p.x, (float) p.y, (float) p.z, color, 20f);
-				}
+		// draw bounding box
+		if (_annotations && cell3DOptionPanel.isThetaSplicings()) {
+		}
+
+
+		if (_annotations && cell3DOptionPanel.isThetaCurves()) {
+
+
+//			System.out.println("Theta crossings size: " + prepatch.getThetaCrossings().size());
+			for (TValue tv : prepatch.getThetaCrossings()) {
+				Point3D.Double p = tv.point();
+				Color color = cell3DOptionPanel.isMonochrome() ? Color.gray : Color.green;
+				Support3D.drawPoint(drawable, (float) p.x, (float) p.y, (float) p.z, color, 20f);
+			}
+
+			List<ThetaCurve> thetaCurves = prepatch.getThetaCurves();
+			for (ThetaCurve tc : thetaCurves) {
+				Drawing.curveDraw3D(drawable, tc, Color.orange, 3f);
+				
+				//for debugging
+		//		Drawing.curveDraw3D(drawable, tc.reverse(), Color.yellow, 3f);
+			}
+
+
+		}
+
+		if (_annotations && cell3DOptionPanel.isThetaSplicings()) {
+			Color[] color = cell3DOptionPanel.isMonochrome()
+					? new Color[] { Color.lightGray, Color.gray, Color.darkGray, Color.lightGray, Color.black, Color.gray, Color.white }
+					: new Color[] { Color.cyan, Color.PINK, Color.yellow, Color.green, Color.red, Color.blue , Color.magenta};
+			List<BaseCurve> splitCurves = prepatch.getSplitCurves();
+	//		System.out.println("splitCurves.size() = " + splitCurves.size());
+			for (int i = 0; i < splitCurves.size(); i++) {
+				Drawing.curveDraw3D(drawable, splitCurves.get(i), color[i % 7], 3f + 4*(i%2));
+				
+				//for debugging
+			//	Drawing.curveDraw3D(drawable, splitCurves.get(i).reverse(), Color.magenta, 3f);
 			}
 		}
 
-	}
-
-	/**
-	 * Draws the sphere using clipping planes so that the portion inside the cell is
-	 * drawn with a different color.
-	 *
-	 * @param drawable the OpenGL drawable.
-	 * @param bounds   the cell bounds in the form [xmin, xmax, ymin, ymax, zmin,
-	 *                 zmax].
-	 */
-	private void clipSphere(GLAutoDrawable drawable, double[] bounds, boolean showClip) {
-		GL2 gl = drawable.getGL().getGL2();
-
-		// First, draw the sphere's outer (wireframe) for context.
-		Support3D.wireSphere(drawable, 0f, 0f, 0f, (float) _radius, 50, 50, Color.gray);
-		// Support3D.solidShadedSphere(drawable, 0f, 0f, 0f, (float) _radius, 100, 100,
-		// new Color(160, 160, 160, 28), true);
-
-		if (!showClip) {
-			return;
-		}
-
-		// Save current state before enabling clipping.
-		gl.glPushAttrib(GL2.GL_ENABLE_BIT | GL.GL_COLOR_BUFFER_BIT);
-
-		// Define the six clipping planes corresponding to the cell faces.
-		double[] eqXmin = { 1.0, 0.0, 0.0, -bounds[0] }; // x >= xmin
-		double[] eqXmax = { -1.0, 0.0, 0.0, bounds[1] }; // x <= xmax
-		double[] eqYmin = { 0.0, 1.0, 0.0, -bounds[2] }; // y >= ymin
-		double[] eqYmax = { 0.0, -1.0, 0.0, bounds[3] }; // y <= ymax
-		double[] eqZmin = { 0.0, 0.0, 1.0, -bounds[4] }; // z >= zmin
-		double[] eqZmax = { 0.0, 0.0, -1.0, bounds[5] }; // z <= zmax
-
-		gl.glClipPlane(GL2ES1.GL_CLIP_PLANE0, eqXmin, 0);
-		gl.glClipPlane(GL2ES1.GL_CLIP_PLANE1, eqXmax, 0);
-		gl.glClipPlane(GL2ES1.GL_CLIP_PLANE2, eqYmin, 0);
-		gl.glClipPlane(GL2ES1.GL_CLIP_PLANE3, eqYmax, 0);
-		gl.glClipPlane(GL2ES1.GL_CLIP_PLANE4, eqZmin, 0);
-		gl.glClipPlane(GL2ES1.GL_CLIP_PLANE5, eqZmax, 0);
-
-		gl.glEnable(GL2ES1.GL_CLIP_PLANE0);
-		gl.glEnable(GL2ES1.GL_CLIP_PLANE1);
-		gl.glEnable(GL2ES1.GL_CLIP_PLANE2);
-		gl.glEnable(GL2ES1.GL_CLIP_PLANE3);
-		gl.glEnable(GL2ES1.GL_CLIP_PLANE4);
-		gl.glEnable(GL2ES1.GL_CLIP_PLANE5);
-
-		// Draw the sphere inside the cell with the "inside" color.
-		Color insideColor = (cell3DOptionPanel != null) && cell3DOptionPanel.isMonochrome() ? new Color(64, 64, 64, 100) : new Color(0, 0, 196, 100);
-		Support3D.solidSphereShell(drawable, 0f, 0f, 0f, (float) (0.9999 * _radius), (float) _radius, 200, 200,
-				insideColor);
-
-		// Disable the clipping planes and restore state.
-		gl.glDisable(GL2ES1.GL_CLIP_PLANE0);
-		gl.glDisable(GL2ES1.GL_CLIP_PLANE1);
-		gl.glDisable(GL2ES1.GL_CLIP_PLANE2);
-		gl.glDisable(GL2ES1.GL_CLIP_PLANE3);
-		gl.glDisable(GL2ES1.GL_CLIP_PLANE4);
-		gl.glDisable(GL2ES1.GL_CLIP_PLANE5);
-		gl.glPopAttrib();
-
-		Color curveColor = _annotations && cell3DOptionPanel.isMonochrome() ? Color.black : Color.red;
-
-		List<GeneralCurve> curves = _cell.getBoundaryCurves();
-		for (GeneralCurve curve : curves) {
-			Drawing.curveDraw3D(drawable, curve, curveColor, 3f);
-		}
-
-//        Edge[] edges = _cell.getEdges();
-//        int numEdges = edges.length;
-//
-//
-//		for (int i = 0; i < numEdges; i++) {
-//			int j = (i + 1) % numEdges;
-//
-//			int commonFace = edges[i].getCommonFace(edges[j]);
-////			System.err.println("Common face: " + commonFace);
-//
-//			Point3D.Double p0 = edges[i].getIntersection();
-//			Point3D.Double p1 = edges[j].getIntersection();
-//
-////			double[] norm1 = _cell.getUnitNormal(commonFace);
-////			Point3D.Double norm2 = _cell.getPlane(commonFace).getNormal();
-////			System.err.println("norm1: " + norm1[0] + " " + norm1[1] + " " + norm1[2]);
-////			System.err.println("norm2: " + norm2.x + " " + norm2.y + " " + norm2.z);
-//
-//			GeneralCurve curve = new GeneralCurve(_cell, commonFace, p0, p1, _radius);
-//			float[] points = curve.getPolyline(20);
-//			Support3D.drawPolyLine(drawable, points, Color.red, 2f);
-//
-////
-////			double dt = 0.1;
-////			for (double t = 0; t <= 1; t += dt) {
-////				Point3D.Double p = curve.getPoint(t);
-////				System.out.println(p.length()/_radius);
-////				Support3D.drawPoint(drawable, (float) p.x, (float) p.y, (float) p.z, Color.yellow, 5f);
-////			}
-//
-////			Support3D.drawLine(drawable, (float) p0.x, (float) p0.y, (float) p0.z, (float) p1.x, (float) p1.y, (float) p1.z, Color.yellow, 2f);
-//		}
 
 	}
+
+
 
 	/**
 	 * Computes the center of the cell given its eight corners.
@@ -407,8 +340,8 @@ public class Cell3D extends Item3D {
 			oneCellDialog = Cell3DSupport.cellDialog(title, oneCellPanel3D);
 
 			oneCellDialog.add(cell3DOptionPanel, "East");
-			
-			
+
+
 			PanelKeys.addKeyListener(oneCellPanel3D, delta, delta, delta);
 
 		} else {
@@ -445,7 +378,7 @@ public class Cell3D extends Item3D {
 
 	/**
 	 * Displays a list of cells in a dialog containing a Panel3D.
-	 * 
+	 *
 	 * @param cells
 	 * @param grid
 	 */

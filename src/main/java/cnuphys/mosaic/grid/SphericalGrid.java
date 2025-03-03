@@ -74,7 +74,7 @@ public class SphericalGrid {
 
         phiGrid = new Grid1D(phiCopy);
     }
-    
+
     /**
      * Copy constructor for SphericalGrid.
      *
@@ -94,7 +94,7 @@ public class SphericalGrid {
         this.alpha = other.alpha;
         this.beta = other.beta;
     }
-   
+
 
     public Grid1D getThetaGrid() { return thetaGrid; }
     public Grid1D getPhiGrid() { return phiGrid; }
@@ -109,7 +109,7 @@ public class SphericalGrid {
     public double getPhiMin() { return phiGrid.min(); }
     public double getPhiMax() { return phiGrid.max(); }
     public int getNumPhi() { return phiGrid.numPoints(); }
-    
+
     public double[] getThetaArray() { return thetaGrid.getPoints(); }
     public double[] getPhiArray() { return phiGrid.getPoints(); }
 

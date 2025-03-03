@@ -13,7 +13,7 @@ public class MosaicRotation {
     public static final int CR_X_AXIS = 0;
     public static final int CR_Y_AXIS = 1;
     public static final int CR_Z_AXIS = 2;
-    
+
     // A tiny angle for numerical comparisons.
     public static final double TINY_ANG = 1.0e-8;
 
@@ -113,7 +113,7 @@ public class MosaicRotation {
     // --------------------------
     // Overloaded method to set an existing rotation
     // --------------------------
-    
+
     /**
      * Sets the provided MosaicRotation instance according to two sequential rotations.
      * <p>

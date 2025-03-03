@@ -1,7 +1,11 @@
 package cnuphys.mosaic.graphics;
 
-import javax.swing.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
 
 public class OptionPanel extends JPanel {
 
@@ -20,7 +24,8 @@ public class OptionPanel extends JPanel {
             checkBoxes[i].setAlignmentX(LEFT_ALIGNMENT);
             // Add an action listener to call the callback when toggled.
             checkBoxes[i].addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
+                @Override
+				public void actionPerformed(ActionEvent e) {
                     if (callback != null) {
                         callback.onToggle();
                     }

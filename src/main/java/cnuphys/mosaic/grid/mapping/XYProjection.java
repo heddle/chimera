@@ -67,7 +67,7 @@ public class XYProjection implements IMapProjection {
 
 
     }
-    
+
 	//draw the overall boundary of the map
     protected void drawBoundary(Graphics g, IContainer container, Color lc) {
 		Graphics2D g2 = (Graphics2D) g;
@@ -88,22 +88,22 @@ public class XYProjection implements IMapProjection {
         if (Math.abs(latitude) > MAX_LAT) {
             return; // Skip drawing lines outside visible range
         }
-        
-        
+
+
         Point2D.Double latLon = new Point2D.Double();
-        Point2D.Double xy = new Point2D.Double();;  
+        Point2D.Double xy = new Point2D.Double();
         Point p0 = new Point();
         Point p1 = new Point();
-        
+
         latLon.setLocation(-Math.PI, latitude);
         latLonToXY(latLon, xy);
         container.worldToLocal(p0, xy);
-        
+
         latLon.setLocation(Math.PI, latitude);
         latLonToXY(latLon, xy);
         container.worldToLocal(p1, xy);
-        
-        
+
+
         // Draw the latitude line
         g2.setColor(Color.LIGHT_GRAY);
         g2.drawLine(p0.x, p0.y, p1.x, p1.y);
@@ -112,14 +112,14 @@ public class XYProjection implements IMapProjection {
     @Override
     public void drawLongitudeLine(Graphics2D g2, IContainer container, double longitude) {
         Point2D.Double latLon = new Point2D.Double();
-        Point2D.Double xy = new Point2D.Double();;  
+        Point2D.Double xy = new Point2D.Double();
         Point p0 = new Point();
         Point p1 = new Point();
-        
+
         latLon.setLocation(longitude, MAX_LAT);
         latLonToXY(latLon, xy);
         container.worldToLocal(p0, xy);
-        
+
         latLon.setLocation(longitude, -MAX_LAT);
         latLonToXY(latLon, xy);
         container.worldToLocal(p1, xy);

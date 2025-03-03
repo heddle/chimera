@@ -71,7 +71,7 @@ public enum EProjection {
 		if (val == null) {
 			return null;
 		}
-		
+
 		double radius = Mosaic.getInstance().getRadius();
 
 		switch (val) {

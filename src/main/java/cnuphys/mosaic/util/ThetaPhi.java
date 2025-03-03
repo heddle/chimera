@@ -30,7 +30,7 @@ public class ThetaPhi extends Point2D.Double {
 
 	/**
 	 * Get the radius
-	 * 
+	 *
 	 * @return the radius
 	 */
 	public double getRadius() {
@@ -101,7 +101,7 @@ public class ThetaPhi extends Point2D.Double {
 
 	/**
 	 * Converts the spherical coordinates to Cartesian coordinates.
-	 * 
+	 *
 	 * @param cartesian The Point3D.Double to store the Cartesian
 	 */
 	public void toCartesian(Point3D.Double cartesian) {
@@ -113,7 +113,7 @@ public class ThetaPhi extends Point2D.Double {
 
 	/**
 	 * Converts the spherical coordinates to Cartesian coordinates.
-	 * 
+	 *
 	 * @return The Cartesian coordinates as a Point
 	 */
 	public Point3D.Double toCartesian() {
@@ -124,7 +124,7 @@ public class ThetaPhi extends Point2D.Double {
 
 	/**
 	 * Converts polar angle theta (0 to 180) to latitude (-90 to 90)
-	 * 
+	 *
 	 * @return the latitude in radians
 	 */
 	public double getLatitude() {

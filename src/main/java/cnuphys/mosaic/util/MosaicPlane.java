@@ -38,7 +38,7 @@ public class MosaicPlane {
     public MosaicPlane(Point3D.Double p0, Point3D.Double p1, Point3D.Double p2) {
         setPlane(p0, p1, p2);
     }
- 
+
     /**
      * Sets the plane using three points. This method computes the plane's
      * parameters, stores the defining points, and computes the rotation matrix.
@@ -67,20 +67,20 @@ public class MosaicPlane {
         double dx1 = p1.x - p0.x;
         double dy1 = p1.y - p0.y;
         double dz1 = p1.z - p0.z;
-        
+
         double dx2 = p2.x - p0.x;
         double dy2 = p2.y - p0.y;
         double dz2 = p2.z - p0.z;
-        
+
         // Compute cross-product components to get the normal.
         double dyz = dy1 * dz2 - dy2 * dz1;
         double dzx = dz1 * dx2 - dz2 * dx1;
         double dxy = dx1 * dy2 - dx2 * dy1;
-        
+
         A = dyz;
         B = dzx;
         C = dxy;
-        
+
         D = -(A * p0.x + B * p0.y + C * p0.z);
     }
 
@@ -99,7 +99,7 @@ public class MosaicPlane {
         } else {
             phi = Math.atan2(B, A);
         }
-        
+
         // Assumes MosaicRotation.rotationFromAngles sets up the rotation matrix appropriately.
         MosaicRotation.rotationFromAngles(rmat, phi, MosaicRotation.CR_Z_AXIS, theta, MosaicRotation.CR_Y_AXIS);
     }
@@ -157,7 +157,7 @@ public class MosaicPlane {
         return (A * p.x + B * p.y + C * p.z + D);
     }
 
-    
+
     /**
      * Computes the "length" of the plane, defined as sqrt(A^2 + B^2 + C^2).
      *
@@ -166,7 +166,7 @@ public class MosaicPlane {
     public double planeLength() {
         return Math.sqrt(A * A + B * B + C * C);
     }
-    
+
     /**
      * Computes the value of z' (the constant z value in the rotated frame).
      *
@@ -175,8 +175,8 @@ public class MosaicPlane {
     public double zprime() {
         return -D / planeLength();
     }
-    
 
- 
+
+
 }
 

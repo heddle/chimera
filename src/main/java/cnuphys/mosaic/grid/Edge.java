@@ -3,17 +3,17 @@ package cnuphys.mosaic.grid;
 import cnuphys.mosaic.util.Point3D;
 
 public class Edge {
-	
+
 	private Point3D.Double startPoint;
 	private Point3D.Double endPoint;
 	private Point3D.Double intersection;
-	
+
 	//each corner is on three faces
 	int[][] cornerfaces;
-	
+
 	//each edge is on two faces
 	private int[] edgeFaces;
-	
+
 	/**
 	 * Constructor for an Edge.
 	 * @param grid The Cartesian grid.
@@ -25,43 +25,43 @@ public class Edge {
 	 * @param radius The radius of the sphere.
      */
 	public Edge(CartesianGrid grid, int corner0, int corner1, int nx, int ny, int nz, double radius) {
-		
+
 		startPoint = new Point3D.Double(GridSupport.getCellCorner(grid, nx, ny, nz, corner0));
 		endPoint = new Point3D.Double(GridSupport.getCellCorner(grid, nx, ny, nz, corner1));
-		
+
 		cornerfaces = new int[2][];
 		cornerfaces[0] = GridSupport.getCornerFaces(corner0);
 		cornerfaces[1] = GridSupport.getCornerFaces(corner1);
-		
+
 		//each edge is on two faces
 		int gridIndex = GridSupport.getEdgeIndex(corner0, corner1);
 		if (gridIndex < 0) {
 			throw new IllegalArgumentException("Invalid edge indices: " + corner0 + ", " + corner1);
 		}
 		edgeFaces = GridSupport.getEdgeFaces(gridIndex);
-		
+
 		//find the intersection point
         intersection = findSphereIntersection(startPoint, endPoint, radius);
 	}
-	
+
 	/**
 	 * Get the faces that the edge is on.
-	 * 
+	 *
 	 * @return The faces.
 	 */
 	public int[] getEdgeFaces() {
 		return edgeFaces;
 	}
-	
+
 	/**
 	 * Get the starting point of the edge.
-	 * 
+	 *
 	 * @return The starting point.
 	 */
 	public Point3D.Double getStartPoint() {
 		return startPoint;
 	}
-	
+
 	/**
 	 * Get the ending point of the edge.
 	 * @return The ending point.
@@ -69,33 +69,33 @@ public class Edge {
 	public Point3D.Double getEndPoint() {
 		return endPoint;
 	}
-	
-	
+
+
 	/**
 	 * Get a common face with this and another edge
 	 * @param other The other edge.
 	 * @return A common face or -1 if no common face
 	 */
 	public int getCommonFace(Edge other) {
-		for (int i = 0; i < edgeFaces.length; i++) {
-			for (int j = 0; j < other.edgeFaces.length; j++) {
-				if (edgeFaces[i] == other.edgeFaces[j]) {
-					return edgeFaces[i];
+		for (int element : edgeFaces) {
+			for (int element2 : other.edgeFaces) {
+				if (element == element2) {
+					return element;
 				}
 			}
 		}
 		return -1;
 	}
-	
+
 	/**
 	 * Get the intersection point of the edge with the sphere.
-	 * 
+	 *
 	 * @return The intersection point.
 	 */
 	public Point3D.Double getIntersection() {
 		return intersection;
 	}
-	
+
 	/**
      * Finds the intersection point on the segment p0->p1 with a sphere centered at the origin.
      * One point must be inside the sphere and one must be outside; otherwise, an exception is thrown.

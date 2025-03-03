@@ -6,12 +6,12 @@ import cnuphys.mosaic.util.MathUtil;
 import cnuphys.mosaic.util.Point3D;
 
 /**
- * 
+ *
  */
 public class PhiCurve extends BaseCurve {
-	
+
 	private double phi; // the constant phi value
-	
+
 	/**
      * Constructs a curve on the face of a cell and on the sphere of the given type.
      *
@@ -21,16 +21,16 @@ public class PhiCurve extends BaseCurve {
      */
 	public PhiCurve(Point3D.Double p0, Point3D.Double p1, double R) {
 		super(p0, p1, R);
-		
+
 		double phiCheck = Math.abs(sv0.phi - sv1.phi);
 		if (phiCheck > Math.PI) {
 			phiCheck = 2 * Math.PI - phiCheck;
 		}
-		
+
 		if (phiCheck > TOL) {
 			throw new IllegalArgumentException("The endpoints are not at the same phi.");
 		}
-		
+
 		phi = sv0.phi;
 	}
 
@@ -60,6 +60,20 @@ public class PhiCurve extends BaseCurve {
 	public double pathLength() {
 		double dTheta = MathUtil.normalizedAngleDifference(sv0.theta, sv1.theta);
 		return R * dTheta;
+	}
+
+
+	@Override
+	public BaseCurve[] split(double t) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public BaseCurve reverse() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

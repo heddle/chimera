@@ -45,6 +45,14 @@ public class Point3D implements Serializable {
         }
 
         /**
+         * Get the equivalent spherical vector.
+         * @return The equivalent spherical vector.
+         */
+		public SphericalVector toSphericalVector() {
+			return new SphericalVector(this);
+		}
+
+        /**
          * Sets the location of the point.
          *
          * @param x The x-coordinate to set.

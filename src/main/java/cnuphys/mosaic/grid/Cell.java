@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 
 import cnuphys.bCNU.util.Bits;
+import cnuphys.mosaic.curve.BaseCurve;
 import cnuphys.mosaic.curve.GeneralCurve;
 import cnuphys.mosaic.curve.PoleEnclosureChecker;
 import cnuphys.mosaic.patch.Prepatch;
@@ -28,7 +29,7 @@ public class Cell {
 	public static final int kiss = 8;
 
 	public static final int polar = 99; //polar is an attribute, not another type
-	
+
 	private static final String[] poleEnclosedStrings = {"No", "North Pole", "South Pole"};
 
 
@@ -51,7 +52,8 @@ public class Cell {
 	private Edge[] edges;
 
 	// The intersection boundary curves
-	private List<GeneralCurve> _boundaryCurves = new ArrayList<>();
+	BaseCurve h;
+	private List<BaseCurve> _boundaryCurves = new ArrayList<>();
 
 	// The intersection type
 	private int intersectionType = -1;
@@ -67,7 +69,7 @@ public class Cell {
 
 	//closest point (just inside) if this is a kiss
 	public Point3D.Double closestPoint;
-	
+
 	//associated prepatch
 	private Prepatch prepatch;
 
@@ -112,7 +114,7 @@ public class Cell {
 		} //edges not null
 
 	}
-	
+
 	/**
 	 * Get the pole enclosed string
 	 * @return the pole enclosed
@@ -120,10 +122,10 @@ public class Cell {
 	public String poleEnclosedString() {
 		return poleEnclosedStrings[poleEnclosed];
 	}
-	
+
 	/**
 	 * Get the associated prePatch
-	 * 
+	 *
 	 * @return the associated prePatch
 	 */
 	public Prepatch getPrepatch() {
@@ -137,7 +139,7 @@ public class Cell {
 	public void setPrepatch(Prepatch prepatch) {
 		this.prepatch = prepatch;
 	}
-	
+
 	/**
 	 * Get the closest point (just inside) if this is a kiss
 	 * @return the closest point (just inside) if this is a kiss,
@@ -197,7 +199,7 @@ public class Cell {
 		return grid;
 	}
 
-	public List<GeneralCurve> getBoundaryCurves() {
+	public List<BaseCurve> getBoundaryCurves() {
 		return _boundaryCurves;
 	}
 

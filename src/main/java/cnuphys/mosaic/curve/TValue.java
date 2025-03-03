@@ -1,19 +1,19 @@
 package cnuphys.mosaic.curve;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
-import org.apache.commons.math3.analysis.solvers.BrentSolver;
 
 import cnuphys.mosaic.util.MathUtil;
+import cnuphys.mosaic.util.Point3D;
 
 
 public class TValue {
-	
+
 	public BaseCurve curve;
 	public double t;
 	public double value;
 	private UnivariateFunction _func;
-	
-	
+
+
 	public TValue(BaseCurve curve, UnivariateFunction func, double targetValue, double tmin, double tmax,
 			double tolerance) {
 		this.curve = curve;
@@ -22,13 +22,21 @@ public class TValue {
 		t = MathUtil.computeT(func, value, tmin, tmax, tolerance); // Assign computed value to `this.t`
 	}
 
-	
+	/**
+	 * Get the point on the curve at the computed t value.
+	 *
+	 * @return the point on the curve at the computed t value.
+	 */
+	public Point3D.Double point() {
+		return curve.getPoint(t);
+	}
 
-	
+
+	@Override
 	public String toString() {
-		String out = String.format("t = %.3f, targVal = %.3f  interpVal = %.3f", 
+		String out = String.format("t = %.3f, targVal = %.3f  interpVal = %.3f",
 				t, value, _func.value(t));
 		return out;
 	}
-	
+
 }

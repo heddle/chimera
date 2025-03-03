@@ -29,7 +29,7 @@ public class MathUtil {
 
 	/**
 	 * Normalizes an angle difference to be within the range [0, 2π].
-	 * 
+	 *
 	 * @param angle1 the first angle in radians
 	 * @param angle2 the second angle in radians
 	 * @return the normalized angle difference in the range [0, 2π]
@@ -48,7 +48,7 @@ public class MathUtil {
 	/**
 	 * Converts a double array to a float array. This is useful for interfacing with
 	 * OpenGL.
-	 * 
+	 *
 	 * @param doubleArray the double array to convert
 	 * @return the float array
 	 */
@@ -65,7 +65,7 @@ public class MathUtil {
 	 * the tolerance of the function, the t value is set to the t value that
 	 * corresponds to the value. If it cannot be found in [0,1), the t value is set
 	 * to Double.NaN.
-	 * 
+	 *
 	 * @param func      the parameterized function
 	 * @param value     the value to search for
 	 * @param tolerance the tolerance

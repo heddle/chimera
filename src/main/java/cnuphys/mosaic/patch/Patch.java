@@ -2,9 +2,11 @@ package cnuphys.mosaic.patch;
 
 import java.util.List;
 
-import cnuphys.mosaic.curve.GeneralCurve;
+import cnuphys.mosaic.curve.BaseCurve;
 import cnuphys.mosaic.grid.CartesianGrid;
 import cnuphys.mosaic.grid.SphericalGrid;
+import cnuphys.mosaic.util.Point3D;
+import cnuphys.mosaic.util.SphericalVector;
 
 /**
  * Represents a closed patch formed by a sequence of Curve objects.
@@ -13,11 +15,11 @@ import cnuphys.mosaic.grid.SphericalGrid;
 
 public class Patch extends BasePatch {
 
-    
- 
+
+
     /**
      * Constructs a Patch from a list of Curve objects.
-     * 
+     *
      * @param cartGrid The Cartesian grid
      * @param sphGrid The Spherical grid
      * @param curves List of GeneralCurve objects forming a closed loop.
@@ -28,26 +30,34 @@ public class Patch extends BasePatch {
      * @param nphi The phi spherical grid index
      * @throws IllegalArgumentException if the curves do not form a closed loop.
      */
-    public Patch(CartesianGrid cartGrid, SphericalGrid sphGrid, List<GeneralCurve> curves, int nx, int ny, int nz, int ntheta, int nphi) {
+    public Patch(CartesianGrid cartGrid, SphericalGrid sphGrid, List<BaseCurve> curves, int nx, int ny, int nz, int ntheta, int nphi) {
 		super(cartGrid, sphGrid, curves, nx, ny, nz, ntheta, nphi);
 	}
- 
+
     /**
-     * Is a given point contained in this Patch?
+     * Is a given point contained in this ThetaPatch?
      * @param x the x coordinate
      * @param y the y coordinate
      * @param z the z coordinate
-     * @param theta the theta coordinate
-     * @param phi the phi coordinate
-     * @return <code>true</code> if the point is contained in the patch
+     * @return <code>true</code> if the point is contained in the theta patch
      */
-	public boolean containsPoint(double x, double y, double z, double theta, double phi) {
+	@Override
+	public boolean containsPoint(double x, double y, double z) {
 		int ix = xGrid.locateInterval(x);
 		int iy = yGrid.locateInterval(y);
 		int iz = zGrid.locateInterval(z);
-		int itheta = thetaGrid.locateInterval(theta);
-		int iphi = phiGrid.locateInterval(phi);
+		Point3D.Double p = new Point3D.Double(x, y, z);
+        SphericalVector sv = new SphericalVector(p);
+
+		int itheta = thetaGrid.locateInterval(sv.theta);
+		int iphi = phiGrid.locateInterval(sv.phi);
 		return tuple.matches(ix, iy, iz, itheta, iphi);
+	}
+
+	@Override
+	public boolean curveContained(BaseCurve curve) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }
 

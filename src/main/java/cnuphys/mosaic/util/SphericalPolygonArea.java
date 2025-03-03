@@ -7,7 +7,7 @@ public class SphericalPolygonArea {
     private static final double TWO_PI = 2 * Math.PI;
 
     /**
-     * Computes the spherical area (as a fraction of the full sphere) of a polygon defined 
+     * Computes the spherical area (as a fraction of the full sphere) of a polygon defined
      * by vertices given in ThetaPhi coordinates.
      *
      * <p>The area returned is the smaller of the complementary regions of the sphere.</p>
@@ -60,7 +60,7 @@ public class SphericalPolygonArea {
                 double deltaAz = Math.abs(az - prevAz);
                 // Adjust deltaAz for periodicity.
                 deltaAz = (deltaAz / Math.PI) - 2 * Math.ceil((deltaAz / Math.PI - 1) / 2.0);
-                double term = (1 - Math.cos(prevColat + (colat - prevColat) / 2)) * Math.PI 
+                double term = (1 - Math.cos(prevColat + (colat - prevColat) / 2)) * Math.PI
                         * deltaAz * Math.signum(az - prevAz);
                 sum += term;
             }

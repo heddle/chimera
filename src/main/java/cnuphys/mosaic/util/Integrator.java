@@ -26,15 +26,15 @@ public class Integrator {
         if (curves == null || curves.isEmpty()) {
             return 0;
         }
-        
+
         // Assume all curves are on the same sphere; get the radius from the first curve.
         double R = curves.get(0).getRadius();
-        
+
         // Create a Romberg integrator.
         RombergIntegrator integrator = new RombergIntegrator();
-        
+
         double totalIntegral = 0.0;
-        
+
         // Loop over each segment.
         for (final GeneralCurve curve : curves) {
             // Define the integrand f(t) = [1 - cos(theta(t))] * (dphi/dt)(t).
@@ -46,12 +46,12 @@ public class Integrator {
                     return (1 - Math.cos(theta)) * dphi;
                 }
             };
-            
+
             // Integrate over t from 0 to 1.
             double segmentIntegral = integrator.integrate(1000000, integrand, 0.0, 1.0);
             totalIntegral += segmentIntegral;
         }
-        
+
         // Multiply by R^2 to get the area.
         return R * R * totalIntegral;
     }

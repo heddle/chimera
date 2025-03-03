@@ -39,7 +39,7 @@ public class Mosaic extends BaseMDIApplication {
 
 	//the singleton
 	private static Mosaic _instance;
-	
+
 	//use monochrome for publication pics
 	public static boolean monochrome = false;
 
@@ -60,10 +60,10 @@ public class Mosaic extends BaseMDIApplication {
 
 	//2D MC view
 	private MonteCarloView2D _mc2DView;
-	
+
 	//menu items for showing all cells of a particular type
 	private JMenuItem[] _showAllType = new JMenuItem[Cell.intersectionTypes.length];
-	
+
 	//show all polar cells
 	private JMenuItem _showPolar;
 
@@ -97,7 +97,7 @@ public class Mosaic extends BaseMDIApplication {
 
 	/**
 	 * Get the radius of the spherical grid
-	 * 
+	 *
 	 * @return the radius of the spherical grid
 	 */
 	public double getRadius() {
@@ -129,7 +129,7 @@ public class Mosaic extends BaseMDIApplication {
 	public MosaicGrid getMosaicGrid() {
 		return _mosaicGrid;
 	}
-	
+
 	/**
 	 * Get the Spherical grid
 	 * @return the spherical grid
@@ -137,10 +137,10 @@ public class Mosaic extends BaseMDIApplication {
 	public SphericalGrid getSphericalGrid() {
         return _mosaicGrid.getSphericalGrid();
 	}
-	
+
 	/**
 	 * Get the Cartesian grid
-	 * 
+	 *
 	 * @return the cartesian grid
 	 */
 	public CartesianGrid getCartesianGrid() {
@@ -185,22 +185,22 @@ public class Mosaic extends BaseMDIApplication {
 		JMenuItem item = new JMenuItem("Find Intersecting Cells");
 		final JMenuItem tableItem = new JMenuItem("Cell Table");
 		final JMenuItem showAllCells = new JMenuItem("Show All Cells");
-		
+
 
 		item.addActionListener(e -> handleIntersectingCells(tableItem, showAllCells));
-		
+
 		tableItem.addActionListener(e -> handleCellTable());
 		tableItem.setEnabled(false);
-		
+
 		showAllCells.addActionListener(e -> showAllCells(Cell.allTypes));
 		showAllCells.setEnabled(false);
-		
+
 		menu.add(item);
 		menu.addSeparator();
         menu.add(tableItem);
 		menu.addSeparator();
 		menu.add(showAllCells);
-        
+
 		for (int i = 0; i < Cell.intersectionTypes.length; i++) {
 			final int type = i;
 			_showAllType[type] = new JMenuItem("Show All " + Cell.intersectionTypes[i]);
@@ -209,19 +209,19 @@ public class Mosaic extends BaseMDIApplication {
 			_showAllType[type].setEnabled(false);
 			menu.add(_showAllType[type]);
 		}
-		
+
 		//show polar cells
 		_showPolar = new JMenuItem("Show Polar Cells");
 		_showPolar.setEnabled(false);
 		_showPolar.addActionListener(e -> showAllCells(Cell.polar));
 		menu.addSeparator();
 		menu.add(_showPolar);
-      
+
 		getJMenuBar().add(menu);
-		
-		
+
+
 	}
-	
+
 	//show the whole grid
 	private void handleGrid() {
         MosaicGridPanel3D.showGrid(_mosaicGrid);
@@ -237,21 +237,21 @@ public class Mosaic extends BaseMDIApplication {
 		}
 		_showPolar.setEnabled(true);
 	}
-	
+
 	//show intersecting cells
 	private void showAllCells(int type) {
-		Cell3D.displayCellList(_mosaicGrid.getIntersectingCells(), 
+		Cell3D.displayCellList(_mosaicGrid.getIntersectingCells(),
 				_mosaicGrid, type);
 }
 
-	
+
 	private void handleCellTable() {
 		CellTablePanel.showDialog(_mosaicGrid.getIntersectingCells());
 	}
 
 	// add to the options menu
 	private void addToOptionMenu(JMenu omenu) {
-	    
+
 	    JMenuItem gridItem = new JMenuItem("Grid...");
 	    gridItem.addActionListener(e -> handleGrid());
 

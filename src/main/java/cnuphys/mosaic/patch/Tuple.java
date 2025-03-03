@@ -1,14 +1,14 @@
 package cnuphys.mosaic.patch;
 
 public class Tuple {
-	
+
 	private int[] indices;
 	private int length;
-	
+
 
 	/**
      * Constructor for the Tuple class. The number of indices must be 3, 4, or 5.
-     * A prepatch tuple has three indices, a thetapatch tuple has four indices, 
+     * A prepatch tuple has three indices, a thetapatch tuple has four indices,
      * and a patch tuple has five indices.
      *
      * @param indices the indices of the tuple
@@ -17,7 +17,7 @@ public class Tuple {
 	public Tuple(int... indices) {
 		set(indices);
 	}
-	
+
 	/**
 	 * Does the given indices match the tuple?
 	 * @param indices the indices
@@ -36,19 +36,39 @@ public class Tuple {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Get the indices of the tuple
-	 * 
+	 *
 	 * @return the indices
 	 */
 	public int[] getIndices() {
 		return indices;
 	}
-	
+
+	public int getNx() {
+		return indices[0];
+	}
+
+	public int getNy() {
+		return indices[1];
+	}
+
+	public int getNz() {
+		return indices[2];
+	}
+
+	public int getNtheta() {
+		return indices[3];
+	}
+
+	public int getNphi() {
+		return indices[4];
+	}
+
 	/**
 	 * Set the indices of the tuple, overriding any existing indices.
-	 * 
+	 *
 	 * @param indices the indices
 	 */
 	public void set(int... indices) {
@@ -60,8 +80,8 @@ public class Tuple {
 		this.length = len;
 		this.indices = indices;
 	}
-	
-	
+
+
     // Override equals to compare the contents of the tuple
     @Override
     public boolean equals(Object obj) {
@@ -83,8 +103,8 @@ public class Tuple {
 		}
 		return true;
 	}
-	
-	
-	
+
+
+
 
 }

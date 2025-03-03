@@ -12,7 +12,21 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EventListener;
 import java.util.List;
-import javax.swing.*;
+
+import javax.swing.AbstractListModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.RowSorter;
+import javax.swing.SortOrder;
+import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
@@ -90,7 +104,7 @@ public class CellTablePanel extends JPanel {
             String str2 = (String) s2;
             return str1.compareTo(str2);
         });
-        
+
         rowSorter.setComparator(4, (s1, s2) -> {
             String str1 = (String) s1;
             String str2 = (String) s2;
@@ -108,7 +122,7 @@ public class CellTablePanel extends JPanel {
                     boolean isSelected, boolean hasFocus, int row, int column) {
                 Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 comp.setBackground(Color.LIGHT_GRAY); // Set the header background color.
-                setHorizontalAlignment(JLabel.CENTER);
+                setHorizontalAlignment(SwingConstants.CENTER);
                 return comp;
             }
         };
@@ -366,7 +380,7 @@ public class CellTablePanel extends JPanel {
 
         // Create a modeless dialog.
         JDialog dialog = new JDialog((JFrame) null, "Cell Table", false);
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         dialog.getContentPane().add(cellTablePanel, BorderLayout.CENTER);
 
         // Add a Close button.

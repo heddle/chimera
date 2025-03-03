@@ -16,41 +16,41 @@ import cnuphys.mosaic.util.Point3D;
  * the sphere defined by the SphericalGrid.
  */
 public class MosaicGrid {
-    
+
 	//the two comprising grids
     private final CartesianGrid _cartesianGrid;
     private final SphericalGrid _sphericalGrid;
-    
+
     //the list of all intersecting cells
     private List<Cell> _intersectingCells = new ArrayList<>();
-    
+
     //prepatches from the intersecting cell
     private List<Prepatch> _prePatches = new ArrayList<>();
-    
+
     //theta patches from theta splicing the prepatches
 
     private List<ThetaPatch> _thetaPatches = new ArrayList<>();
-    
+
     //the final patches from phi splicing the theta patches
     private List<Patch> _patches = new ArrayList<>();
 
     public MosaicGrid(CartesianGrid cartesianGrid, SphericalGrid sphericalGrid) {
-        _cartesianGrid = new CartesianGrid(cartesianGrid); 
+        _cartesianGrid = new CartesianGrid(cartesianGrid);
         _sphericalGrid = new SphericalGrid(sphericalGrid);
     }
-    
+
 	/**
 	 * Get the Cartesian grid
-	 * 
+	 *
 	 * @return the Cartesian grid
 	 */
 	public CartesianGrid getCartesianGrid() {
 		return _cartesianGrid;
 	}
-	
+
 	/**
 	 * Get the spherical grid
-	 * 
+	 *
 	 * @return the spherical grid
 	 */
 	public SphericalGrid getSphericalGrid() {
@@ -59,34 +59,34 @@ public class MosaicGrid {
 
 	/**
 	 * Get the intersecting cells
-	 * 
+	 *
 	 * @return the intersecting cells
 	 */
 	public List<Cell> getIntersectingCells() {
 		return _intersectingCells;
 	}
-	
+
 	/**
 	 * Get the prepatches
-	 * 
+	 *
 	 * @return the prepatches
 	 */
 	public List<Prepatch> getPrePatches() {
 		return _prePatches;
 	}
-	
+
 	/**
 	 * Get the theta patches
-	 * 
+	 *
 	 * @return the theta patches
 	 */
 	public List<ThetaPatch> getThetaPatches() {
 		return _thetaPatches;
 	}
-	
+
 	/**
 	 * Get the patches
-	 * 
+	 *
 	 * @return the patches
 	 */
 	public List<Patch> getPatches() {
@@ -107,7 +107,7 @@ public class MosaicGrid {
 	 * Identifies the Cartesian grid cells that intersect the sphere defined by the
 	 * SphericalGrid. This is the first step of the algorithm.
 	 */
-    
+
     int kisscount = 0;
     public void findIntersectingCells() {
         reset();
@@ -123,7 +123,7 @@ public class MosaicGrid {
 		for (int iz = zBulkLims[0]; iz <= zBulkLims[1]; iz++) {
 			for (int iy = yBulkLims[0]; iy <= yBulkLims[1]; iy++) {
 				for (int ix = xBulkLims[0]; ix <= xBulkLims[1]; ix++) {
-					
+
 					double[][] cellCorners = GridSupport.getCellCorners(_cartesianGrid, ix, iy, iz);
 
 			        int cornerBits = 0;
@@ -169,7 +169,7 @@ public class MosaicGrid {
         } //z
         System.out.println("Intersecting cells count: " + _intersectingCells.size());
         Cell.report(_intersectingCells);
-        
+
         //total area of the pre patches
         double totalArea = 0;
 		for (Prepatch patch : _prePatches) {
@@ -177,12 +177,12 @@ public class MosaicGrid {
 			totalArea += patchArea;
 		}
         System.out.println("Prepatch count: " + _prePatches.size() + " Total normalized area: " + totalArea);
-        
+
     }
 
     //do the hideous kiss test (this is the test devised by chatGPT)
     private int kissTest(double[][] corners, double sphereRadius, Point3D.Double closestPoint) {
-    	
+
     	//get the closest face
     	int closestFace = GridSupport.getClosestFaceToOrigin(corners);
 

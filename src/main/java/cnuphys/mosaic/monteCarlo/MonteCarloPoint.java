@@ -21,7 +21,7 @@ public class MonteCarloPoint {
 
 	public ThetaPhi thetaPhi;
 	public Tuple tuple;
-	
+
 	private Color mapColors[] = Mosaic.monochrome ? monochromeColors : mapColors1;
 
 	private static Random random = new Random();
@@ -54,13 +54,13 @@ public class MonteCarloPoint {
     }
 
 	public int getColorIndex() {
-		
+
 		int indices[] = tuple.getIndices();
 		int sum = 0;
-		for (int i = 0; i < indices.length; i++) {
-			sum += indices[i];
+		for (int index : indices) {
+			sum += index;
 		}
-		
+
 		return sum % mapColors.length;
 	}
 

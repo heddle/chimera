@@ -18,14 +18,20 @@ public class PoleEnclosureChecker {
      *        -1 if the north pole is on a curve within TOL,
      *        -2 if the south pole is on a curve within TOL.
      */
-    public static int checkPoleEnclosure(List<GeneralCurve> curves) {
+    public static int checkPoleEnclosure(List<BaseCurve> curves) {
         double totalWinding = 0.0;
         double thetaSum = 0.0;
         int thetaCount = 0;
 
-        for (GeneralCurve curve : curves) {
-            if (containsPole(curve, 0)) return -1; // North pole is on a curve
-            if (containsPole(curve, Math.PI)) return -2; // South pole is on a curve
+        for (BaseCurve curve : curves) {
+            if (containsPole(curve, 0))
+			 {
+				return -1; // North pole is on a curve
+			}
+            if (containsPole(curve, Math.PI))
+			 {
+				return -2; // South pole is on a curve
+			}
 
             totalWinding += computeWindingNumber(curve);
             thetaSum += computeAverageTheta(curve);
@@ -51,7 +57,7 @@ public class PoleEnclosureChecker {
      * @param poleTheta The theta coordinate of the pole (0 for north, PI for south)
      * @return true if the pole lies on the curve within tolerance, false otherwise
      */
-    private static boolean containsPole(GeneralCurve curve, double poleTheta) {
+    private static boolean containsPole(BaseCurve curve, double poleTheta) {
         for (double t = 0; t <= 1; t += 0.01) { // Sample points along the curve
             if (Math.abs(curve.theta(t) - poleTheta) < TOL) {
                 return true;
@@ -64,11 +70,11 @@ public class PoleEnclosureChecker {
      * Computes the winding number of the curve segment in spherical coordinates.
      * Uses azimuthal angle differences to track how much the curve winds around the pole.
      *
-     * @param curve The GeneralCurve object
+     * @param curve The Curve object
      * @return Winding angle contribution of the curve (in radians)
      */
-    private static double computeWindingNumber(GeneralCurve curve) {
- 
+    private static double computeWindingNumber(BaseCurve curve) {
+
         double totalWinding = 0.0;
         int N = 100;
         double dt = 1.0 / N;
@@ -89,10 +95,10 @@ public class PoleEnclosureChecker {
      * Computes the average theta value along a curve segment.
      * This is used to determine if the loop is mostly in the northern or southern hemisphere.
      *
-     * @param curve The GeneralCurve object
+     * @param curve The Curve object
      * @return The average theta value along the curve
      */
-    private static double computeAverageTheta(GeneralCurve curve) {
+    private static double computeAverageTheta(BaseCurve curve) {
 
         double sumTheta = 0.0;
         int N = 100;

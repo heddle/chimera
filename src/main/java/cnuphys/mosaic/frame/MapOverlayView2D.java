@@ -2,6 +2,7 @@ package cnuphys.mosaic.frame;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -10,15 +11,21 @@ import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.util.List;
 
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JMenuBar;
+import javax.swing.JPanel;
 
 import cnuphys.bCNU.drawable.DrawableAdapter;
 import cnuphys.bCNU.drawable.IDrawable;
 import cnuphys.bCNU.feedback.FeedbackControl;
 import cnuphys.bCNU.feedback.FeedbackPane;
 import cnuphys.bCNU.feedback.IFeedbackProvider;
+import cnuphys.bCNU.graphics.component.CommonBorder;
 import cnuphys.bCNU.graphics.container.IContainer;
 import cnuphys.bCNU.util.PropertySupport;
+import cnuphys.bCNU.util.X11Colors;
+import cnuphys.mosaic.graphics.Drawing;
 import cnuphys.mosaic.grid.CartesianGrid;
 import cnuphys.mosaic.grid.MosaicGrid;
 import cnuphys.mosaic.grid.SphericalGrid;
@@ -27,10 +34,12 @@ import cnuphys.mosaic.grid.mapping.MapProjectionMenu;
 import cnuphys.mosaic.grid.mapping.MapView2D;
 import cnuphys.mosaic.grid.mapping.MollweideProjection;
 import cnuphys.mosaic.monteCarlo.MonteCarloPoint;
+import cnuphys.mosaic.patch.Prepatch;
+import cnuphys.mosaic.patch.ThetaPatch;
 import cnuphys.mosaic.util.Point3D;
 import cnuphys.mosaic.util.ThetaPhi;
 
-public class MonteCarloView2D extends MapView2D implements IFeedbackProvider {
+public class MapOverlayView2D extends MapView2D implements IFeedbackProvider {
 
 	private static final int WIDTH = 1200;
 
@@ -38,18 +47,29 @@ public class MonteCarloView2D extends MapView2D implements IFeedbackProvider {
 	private MapProjectionMenu _projectionMenu;
 
 	private FeedbackPane _feedbackPane;
+	
+	private JPanel _eastPanel;
+	private JPanel _overlayPanel;
+	
+	private boolean overlayMonteCarlo = false;
+	private boolean overlayPrepatches = false;
+	private boolean overlayThetaPatches = false;
+	private boolean overlayPatches = false;
+
+	private static final Color prepatchLineColor = X11Colors.getX11Color("Powder Blue");
+    private static final Color thetaPatchLineColor = X11Colors.getX11Color("Coral");
 
 	/**
 	 * Create a 2D view for Monte Carlo
 	 */
-	public MonteCarloView2D() {
-		super(PropertySupport.TITLE, "MonteCarlo 2D",
+	public MapOverlayView2D() {
+		super(PropertySupport.TITLE, "Map View",
 				PropertySupport.WORLDSYSTEM, getWorldSystem(EProjection.MOLLWEIDE),
 				PropertySupport.ICONIFIABLE, true,
 				PropertySupport.MAXIMIZABLE, true,
 				PropertySupport.CLOSABLE, true,
 				PropertySupport.RESIZABLE, true,
-				PropertySupport.PROPNAME, "MonteCarlo 2D",
+				PropertySupport.PROPNAME, "Map View",
 				PropertySupport.BACKGROUND, Color.white,
 				PropertySupport.WIDTH, WIDTH,
 				PropertySupport.HEIGHT, (int)(0.66325 * WIDTH),
@@ -70,6 +90,11 @@ public class MonteCarloView2D extends MapView2D implements IFeedbackProvider {
 				refresh();
 			}
 		};
+		
+		_eastPanel = new JPanel();
+		
+		_eastPanel.setLayout(new BorderLayout());
+		makeOverlayPanel();
 
 		_projectionMenu = new MapProjectionMenu(al);
 		menuBar.add(_projectionMenu);
@@ -79,10 +104,76 @@ public class MonteCarloView2D extends MapView2D implements IFeedbackProvider {
 
 		setFeedback();
 
+		add(_eastPanel, BorderLayout.EAST);
 		setBeforeDraw();
 		setAfterDraw();
 	}
 
+	
+	
+	
+	private void makeOverlayPanel() {
+	    _overlayPanel = new JPanel();
+	    // Set the layout to a vertical box layout
+	    _overlayPanel.setLayout(new BoxLayout(_overlayPanel, BoxLayout.Y_AXIS));
+	    _overlayPanel.setBorder(new CommonBorder("Map Overlays"));
+	    
+	    // Create the "Overlay MonteCarlo" checkbox
+	    JCheckBox monteCarloCheck = new JCheckBox("Overlay MonteCarlo");
+	    monteCarloCheck.setAlignmentX(Component.LEFT_ALIGNMENT);
+	    monteCarloCheck.setSelected(overlayMonteCarlo);  // default unselected
+	    monteCarloCheck.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            // Callback: perform any required action when the checkbox is toggled
+	            overlayMonteCarlo = monteCarloCheck.isSelected();
+	            refresh();
+	        }
+	    });
+	    _overlayPanel.add(monteCarloCheck);
+
+	    // Create the "Overlay Prepatches" checkbox
+	    JCheckBox prepatchesCheck = new JCheckBox("Overlay Prepatches");
+	    prepatchesCheck.setAlignmentX(Component.LEFT_ALIGNMENT);
+	    prepatchesCheck.setSelected(overlayPrepatches);  // default unselected);
+	    prepatchesCheck.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	overlayPrepatches = prepatchesCheck.isSelected();
+	            refresh();
+	        }
+	    });
+	    _overlayPanel.add(prepatchesCheck);
+
+	    // Create the "Overlay Theta Patches" checkbox
+	    JCheckBox thetaPatchesCheck = new JCheckBox("Overlay Theta Patches");
+	    thetaPatchesCheck.setAlignmentX(Component.LEFT_ALIGNMENT);
+	    thetaPatchesCheck.setSelected(overlayThetaPatches);  // default unselected);
+	    thetaPatchesCheck.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            overlayThetaPatches = thetaPatchesCheck.isSelected();
+	            refresh();
+	        }
+	    });
+	    _overlayPanel.add(thetaPatchesCheck);
+
+	    // Create the "Overlay Patches" checkbox
+	    JCheckBox patchesCheck = new JCheckBox("Overlay Patches");
+	    patchesCheck.setAlignmentX(Component.LEFT_ALIGNMENT);
+	    patchesCheck.setSelected(overlayPatches);  // default unselected);
+	    patchesCheck.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            overlayPatches =  patchesCheck.isSelected();
+	            refresh();
+	        }
+	    });
+	    _overlayPanel.add(patchesCheck);
+
+	    // Add the overlay panel to the east panel at the NORTH position
+	    _eastPanel.add(_overlayPanel, BorderLayout.NORTH);
+	}
 
 	//set up the feedback
 	private void setFeedback() {
@@ -93,7 +184,8 @@ public class MonteCarloView2D extends MapView2D implements IFeedbackProvider {
 
 		Dimension dim = _feedbackPane.getPreferredSize();
 		_feedbackPane.setPreferredSize(new Dimension(200, dim.height));
-		add(_feedbackPane, BorderLayout.EAST);
+		
+		_eastPanel.add(_feedbackPane, BorderLayout.CENTER);
 	}
 
 
@@ -116,15 +208,41 @@ public class MonteCarloView2D extends MapView2D implements IFeedbackProvider {
 	private void setAfterDraw() {
 
 
+		MosaicGrid grid = Mosaic.getInstance().getMosaicGrid();
+		final MapOverlayView2D view = this;
 		IDrawable afterDraw = new DrawableAdapter() {
 			@Override
 			public void draw(Graphics g, IContainer container) {
-				drawMonteCarloPoints(g, container);
+				if (overlayMonteCarlo) {
+					drawMonteCarloPoints(g, container);
+				}
+				
 				_projection.drawMapOutline(g, container);
+
+				if (overlayPrepatches) {
+					for (Prepatch prepatch : grid.getPrepatches()) {
+						Drawing.drawPatch2D(g, view, prepatch, prepatchLineColor, Color.blue, 1);
+					}
+				}
+				
+				if (overlayThetaPatches) {
+					for (ThetaPatch thetapatch : grid.getThetaPatches()) {
+						Drawing.drawPatch2D(g, view, thetapatch, thetaPatchLineColor, Color.green, 1);
+					}
+				}
 			}
 		};
 
 		getContainer().setAfterDraw(afterDraw);
+	}
+	
+	public boolean thetaPhiToLocal(Point pp, ThetaPhi thetaPhi) {
+		Point2D.Double xy = new Point2D.Double();
+		xy.x = thetaPhi.getPhi();
+		xy.y = thetaPhi.getLatitude();
+		_projection.latLonToXY(xy, xy);
+		getContainer().worldToLocal(pp, xy);
+		return _projection.isPointVisible(xy);
 	}
 
 	//draw the Monte Carlo points

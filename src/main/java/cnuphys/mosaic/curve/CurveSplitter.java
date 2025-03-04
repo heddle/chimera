@@ -2,56 +2,73 @@ package cnuphys.mosaic.curve;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class CurveSplitter {
 
-    /**
-     * Splits the given list of curves at the specified TValue locations and ensures
-     * the resulting list forms a closed loop.
+	   /**
+     * Splits each curve in the provided list at the t values given by its TValue objects.
+     * It returns a new list of curves that, when taken in order, form a continuous closed loop.
      *
-     * @param curves The original list of BasicCurves forming a closed loop.
-     * @param splitPoints The list of TValue objects indicating split locations.
-     * @return A new list of BasicCurves forming a closed loop after splitting.
+     * Assumptions:
+     * <ul>
+     *   <li>Each curve contains its split points (here, we use getThetaCrossings() as an example).</li>
+     *   <li>The curve.split(t) method returns an array of two curves corresponding to the split:
+     *       the left segment covering [0,t] and the right segment covering [t,1), with the latter
+     *       reparameterized to [0,1).</li>
+     *   <li>If multiple splits occur on one curve, the original parameter t is mapped to the current
+     *       segment using: newT = (t - previousT) / (1 - previousT).</li>
+     * </ul>
+     *
+     * @param curves the original list of curves forming a closed loop
+     * @return a new list of curves resulting from splitting
      */
-    public static ArrayList<BaseCurve> getSplitCurves(List<BaseCurve> curves, List<TValue> splitPoints) {
-        // Map to store split points for each curve
-        Map<BaseCurve, List<Double>> splitMap = new HashMap<>();
-
-        // Organize split points by curve
-        for (TValue tValue : splitPoints) {
-            splitMap.computeIfAbsent(tValue.curve, k -> new ArrayList<>()).add(tValue.t);
-        }
-
+    public static ArrayList<BaseCurve> getSplitCurves(List<BaseCurve> curves) {
         ArrayList<BaseCurve> splitCurves = new ArrayList<>();
 
-        // Iterate over each curve and split at the designated points
         for (BaseCurve curve : curves) {
-            if (splitMap.containsKey(curve)) {
-                List<Double> tValues = splitMap.get(curve);
-                tValues.sort(Double::compareTo); // Ensure t-values are in ascending order
+            // Get the split points for this curve.
+            // (Here we assume the split points are the theta crossings;
+            // adjust if your TValue list comes from elsewhere.)
+            List<TValue> splitPoints = curve.getThetaCrossings();
 
-                BaseCurve currentCurve = curve;
+            // Sort the split points by t.
+            Collections.sort(splitPoints, (a, b) -> Double.compare(a.t, b.t));
 
-                for (double t : tValues) {
-                    BaseCurve[] split = currentCurve.split(t);
-                    splitCurves.add(split[0]); // First part of the split
-                    currentCurve = split[1];  // Continue splitting the remaining portion
-                }
-                splitCurves.add(currentCurve); // Add the last remaining part
-            } else {
-                // No split points for this curve, keep it as is
+            // If there are no split points, simply add the original curve.
+            if (splitPoints.isEmpty()) {
                 splitCurves.add(curve);
+            } else {
+                double previousT = 0.0;
+                BaseCurve currentCurve = curve;
+                for (TValue tv : splitPoints) {
+                    double t = tv.t;
+                    // Skip if this t is not greater than the last one.
+                    if (t <= previousT) {
+                        continue;
+                    }
+                    // Map t from the original parameterization to the current segment.
+                    double newT = (t - previousT) / (1.0 - previousT);
+                    BaseCurve[] segments = currentCurve.split(newT);
+                    // Add the left segment.
+                    splitCurves.add(segments[0]);
+                    // Continue with the right segment.
+                    currentCurve = segments[1];
+                    previousT = t;
+                }
+                // Add the final segment.
+                splitCurves.add(currentCurve);
             }
         }
 
-        // Ensure the split curves form a closed loop
+        // Optionally validate that the new list forms a closed loop.
         if (!BaseCurve.validateLoop(splitCurves)) {
-            throw new RuntimeException("Split curves do not form a closed loop!");
+            throw new IllegalStateException("Split curves do not form a continuous closed loop.");
         }
 
         return splitCurves;
     }
+
+
 }

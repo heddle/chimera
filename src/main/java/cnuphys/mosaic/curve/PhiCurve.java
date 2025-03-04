@@ -2,8 +2,10 @@ package cnuphys.mosaic.curve;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 
+import cnuphys.mosaic.frame.Mosaic;
 import cnuphys.mosaic.util.MathUtil;
 import cnuphys.mosaic.util.Point3D;
+import cnuphys.mosaic.util.SphericalVector;
 
 /**
  *
@@ -11,6 +13,8 @@ import cnuphys.mosaic.util.Point3D;
 public class PhiCurve extends BaseCurve {
 
 	private double phi; // the constant phi value
+	
+	private int phiIndex;
 
 	/**
      * Constructs a curve on the face of a cell and on the sphere of the given type.
@@ -31,7 +35,49 @@ public class PhiCurve extends BaseCurve {
 			throw new IllegalArgumentException("The endpoints are not at the same phi.");
 		}
 
-		phi = sv0.phi;
+		phi = MathUtil.normalizeAngle(sv0.phi);
+		
+		phiIndex = Mosaic.getInstance().getSphericalGrid().getPhiGrid().closestIndex(phi);
+
+	}
+	
+	/**
+	 * Create a phi curve from spherical coordinates.
+	 *
+	 * @param theta the polar angle in radians
+	 * @param phi0  one azimuthal angle in radians
+	 * @param phi1  the other azimuthal angle in radians
+	 * @param R     the radius of the sphere
+	 * @return a theta curve
+	 */
+	public static PhiCurve createPhiCurve(double theta0, double theta1, double phi, double R) {
+
+		phi = MathUtil.normalizeAngle(phi);
+
+		Point3D.Double p0 = new SphericalVector(theta0, phi, R).toCartesian();
+		Point3D.Double p1 = new SphericalVector(theta1, phi, R).toCartesian();
+		PhiCurve pc = new PhiCurve(p0, p1, R);
+		return pc;
+	}
+
+
+	/**
+	 * Get a copy of the curve but with the endpoints reversed.
+	 * @return a reversed copy of the curve
+	 */
+	@Override
+	public PhiCurve reverse() {
+		PhiCurve pc = new PhiCurve(p1, p0, R);
+		return pc;
+	}
+
+	/**
+	 * Get the phi index of the phi grid
+	 *
+	 * @return the phi index
+	 */
+	public int getPhiIndex() {
+		return phiIndex;
 	}
 
 
@@ -58,7 +104,7 @@ public class PhiCurve extends BaseCurve {
 
 	@Override
 	public double pathLength() {
-		double dTheta = MathUtil.normalizedAngleDifference(sv0.theta, sv1.theta);
+		double dTheta = Math.abs(sv1.theta - sv0.theta);
 		return R * dTheta;
 	}
 
@@ -69,11 +115,5 @@ public class PhiCurve extends BaseCurve {
 		return null;
 	}
 
-
-	@Override
-	public BaseCurve reverse() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 }

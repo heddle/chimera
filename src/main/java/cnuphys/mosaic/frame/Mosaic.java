@@ -59,7 +59,7 @@ public class Mosaic extends BaseMDIApplication {
     private final HashSet<Tuple> _seenTuples = new HashSet<>();
 
 	//2D MC view
-	private MonteCarloView2D _mc2DView;
+	private MapOverlayView2D _mapOverlayView;
 
 	//menu items for showing all cells of a particular type
 	private JMenuItem[] _showAllType = new JMenuItem[Cell.intersectionTypes.length];
@@ -152,7 +152,7 @@ public class Mosaic extends BaseMDIApplication {
 	 * Add the initial views to the desktop.
 	 */
 	private void addInitialViews() {
-		_mc2DView = new MonteCarloView2D();
+		_mapOverlayView = new MapOverlayView2D();
 	}
 
 	/**
@@ -180,14 +180,14 @@ public class Mosaic extends BaseMDIApplication {
 		// the options menu
 		addToOptionMenu(mmgr.getOptionMenu());
 
-		JMenu menu = new JMenu("Intersections");
+		JMenu menu = new JMenu("Algorithm");
 
-		JMenuItem item = new JMenuItem("Find Intersecting Cells");
+		JMenuItem item = new JMenuItem("Run Mosaic Algorithm");
 		final JMenuItem tableItem = new JMenuItem("Cell Table");
 		final JMenuItem showAllCells = new JMenuItem("Show All Cells");
 
 
-		item.addActionListener(e -> handleIntersectingCells(tableItem, showAllCells));
+		item.addActionListener(e -> runMosaicAlgorithm(tableItem, showAllCells));
 
 		tableItem.addActionListener(e -> handleCellTable());
 		tableItem.setEnabled(false);
@@ -227,9 +227,9 @@ public class Mosaic extends BaseMDIApplication {
         MosaicGridPanel3D.showGrid(_mosaicGrid);
 	}
 
-	//handle intersecting cells
-	private void handleIntersectingCells(JMenuItem tableItem, JMenuItem showAllCells) {
-		_mosaicGrid.findIntersectingCells();
+	//run the algorithm
+	private void runMosaicAlgorithm(JMenuItem tableItem, JMenuItem showAllCells) {
+		_mosaicGrid.runMosaicAlgorithm();
 		tableItem.setEnabled(true);
 		showAllCells.setEnabled(true);
 		for (int i = 0; i < Cell.intersectionTypes.length; i++) {

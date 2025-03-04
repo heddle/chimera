@@ -28,7 +28,7 @@ public class SphericalVector {
 	public String toString() {
 		double theta = Math.toDegrees(this.theta);
 		double phi = Math.toDegrees(this.phi);
-		return " theta: " + theta + " phi: " + phi;
+		return String.format("theta: %.3f phi %.3f", theta, phi);
 	}
 
 	/**

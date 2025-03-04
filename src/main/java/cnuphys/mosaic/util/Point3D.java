@@ -99,7 +99,7 @@ public class Point3D implements Serializable {
 
         @Override
         public String toString() {
-            return String.format("Point3D.Double[x=%.4f, y=%.4f, z=%.4f]", x, y, z);
+            return String.format("[x=%.3f y=%.3f z=%.3f]", x, y, z);
         }
 
         @Override

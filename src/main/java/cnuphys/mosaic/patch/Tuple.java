@@ -5,6 +5,8 @@ public class Tuple {
 	private int[] indices;
 	private int length;
 
+    private static final String indexNames[] = {"Nx", "Ny", "Nz", "Ntheta", "Nphi"};
+    private static final String patchNames[] = {"Prepatch", "Thetapatch", "Patch"};
 
 	/**
      * Constructor for the Tuple class. The number of indices must be 3, 4, or 5.
@@ -105,6 +107,19 @@ public class Tuple {
 	}
 
 
+    public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(patchNames[length - 3] + " ");
+		sb.append("[");
+		for (int i = 0; i < length; i++) {
+			if (i > 0) {
+				sb.append(", ");
+			}
+			sb.append(indexNames[i] + " = " + indices[i]);
+		}
+		sb.append("]");
+		return sb.toString();
+    }
 
 
 }

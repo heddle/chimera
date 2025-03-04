@@ -3,6 +3,7 @@ package cnuphys.mosaic.graphics;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.jogamp.opengl.GL2;
@@ -11,7 +12,9 @@ import com.jogamp.opengl.GLAutoDrawable;
 import bCNU3D.Panel3D;
 import bCNU3D.Support3D;
 import cnuphys.bCNU.dialog.SimpleDialog;
+import cnuphys.bCNU.util.X11Colors;
 import cnuphys.mosaic.curve.BaseCurve;
+import cnuphys.mosaic.curve.PhiCurve;
 import cnuphys.mosaic.curve.TValue;
 import cnuphys.mosaic.curve.ThetaCurve;
 import cnuphys.mosaic.grid.CartesianGrid;
@@ -43,6 +46,9 @@ public class Cell3D extends Item3D {
 
 	private static final Color prepatchColor = new Color(0, 0, 196, 80);
 	private static final Color thetaPatchColor = new Color(0, 196, 0, 80);
+	
+	private static final Color thetaIntersectColor = X11Colors.getX11Color("Light Sea Green");
+	private static final Color phiIntersectColor = X11Colors.getX11Color("Light Blue");
 
 	// Static dialog-related fields for display; only one dialog instance is used.
 	private static Panel3D oneCellPanel3D;
@@ -197,10 +203,9 @@ public class Cell3D extends Item3D {
 
 		if (_annotations && cell3DOptionPanel.isThetaPatches()) {
 			List<ThetaPatch> thetaPatches = prepatch.getThetaPatches();
-			System.out.println("ThetaPatches size: " + thetaPatches.size());
 			for (ThetaPatch tp : thetaPatches) {
-//				Drawing.drawPatch3D(drawable, tp, Color.black, thetaPatchColor, 3f);
-				Drawing.drawPatch3D(drawable, tp, Color.black, Drawing.randomColor(), 3f);
+				Drawing.drawPatch3D(drawable, tp, Color.black, thetaPatchColor, 3f);
+//				Drawing.drawPatch3D(drawable, tp, Color.black, Drawing.randomColor(), 3f);
 			}
 		}
 
@@ -224,23 +229,43 @@ public class Cell3D extends Item3D {
 		if (_annotations && cell3DOptionPanel.isThetaCurves()) {
 
 
-//			System.out.println("Theta crossings size: " + prepatch.getThetaCrossings().size());
+			System.out.println("Theta crossings size: " + prepatch.getThetaCrossings().size());
 			for (TValue tv : prepatch.getThetaCrossings()) {
 				Point3D.Double p = tv.point();
-				Color color = cell3DOptionPanel.isMonochrome() ? Color.gray : Color.green;
-				Support3D.drawPoint(drawable, (float) p.x, (float) p.y, (float) p.z, color, 20f);
+				Color color = cell3DOptionPanel.isMonochrome() ? Color.gray : thetaIntersectColor;
+				Support3D.drawPoint(drawable, (float) p.x, (float) p.y, (float) p.z, color, 12f);
 			}
 
 			List<ThetaCurve> thetaCurves = prepatch.getThetaCurves();
 			for (ThetaCurve tc : thetaCurves) {
 				Drawing.curveDraw3D(drawable, tc, Color.orange, 3f);
-				
-				//for debugging
-		//		Drawing.curveDraw3D(drawable, tc.reverse(), Color.yellow, 3f);
 			}
 
 
 		}
+		
+		if (_annotations && cell3DOptionPanel.isPhiIntersections()) {
+			List<TValue> phiCrossings = prepatch.getPhiCrossings();
+			System.out.println("Phi crossings size: " + phiCrossings.size());
+            for (TValue tv : phiCrossings) {
+                Point3D.Double p = tv.point();
+                Color color = cell3DOptionPanel.isMonochrome() ? Color.gray : phiIntersectColor;
+                Support3D.drawPoint(drawable, (float) p.x, (float) p.y, (float) p.z, color, 12f);
+            }
+            
+            List<ThetaPatch> thetaPatches = prepatch.getThetaPatches();
+            int count = 0;
+			for (ThetaPatch tp : thetaPatches) {
+				List<PhiCurve> phiCurves = tp.getPhiCurves();
+				for (PhiCurve pc : phiCurves) {
+					Drawing.curveDraw3D(drawable, pc, Color.red, 3f);
+					count++;
+				}
+			}
+			System.out.println("Phi curve count: " + count);
+        }
+
+
 
 		if (_annotations && cell3DOptionPanel.isThetaSplicings()) {
 			Color[] color = cell3DOptionPanel.isMonochrome()

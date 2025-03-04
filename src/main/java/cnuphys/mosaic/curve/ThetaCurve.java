@@ -21,8 +21,6 @@ public class ThetaCurve extends BaseCurve {
 
 	private boolean flipped = false;
 	
-	private Prepatch prepatch;
-
 	/**
      * Constructs a curve on the face of a cell and on the sphere of the given type.
      *
@@ -30,9 +28,8 @@ public class ThetaCurve extends BaseCurve {
      * @param p1        the ending point of the curve
      * @param R         the radius of the sphere
      */
-	public ThetaCurve(Prepatch prepatch, Point3D.Double p0, Point3D.Double p1, double R) {
+	public ThetaCurve(Point3D.Double p0, Point3D.Double p1, double R) {
 		super(p0, p1, R);
-		this.prepatch = prepatch;
 
 		double thetaCheck = Math.abs(sv0.theta - sv1.theta);
 		if (thetaCheck > Math.PI) {
@@ -66,14 +63,14 @@ public class ThetaCurve extends BaseCurve {
 	 * @param R     the radius of the sphere
 	 * @return a theta curve
 	 */
-	public static ThetaCurve createThetaCurve(Prepatch prepatch, double theta, double phi0, double phi1, double R) {
+	public static ThetaCurve createThetaCurve(double theta, double phi0, double phi1, double R) {
 
 		phi0 = MathUtil.normalizeAngle(phi0);
 		phi1 = MathUtil.normalizeAngle(phi1);
 
 		Point3D.Double p0 = new SphericalVector(theta, phi0, R).toCartesian();
 		Point3D.Double p1 = new SphericalVector(theta, phi1, R).toCartesian();
-		ThetaCurve tc = new ThetaCurve(prepatch, p0, p1, R);
+		ThetaCurve tc = new ThetaCurve(p0, p1, R);
 		return tc;
 	}
 
@@ -93,11 +90,7 @@ public class ThetaCurve extends BaseCurve {
 	 */
 	@Override
 	public ThetaCurve reverse() {
-//		double phi0 = sv1.phi;
-//		double phi1 = sv0.phi;
-		
-//		ThetaCurve tc1 = createThetaCurve(prepatch, theta, phi0, phi1, R);
-		ThetaCurve tc = new ThetaCurve(prepatch, p1, p0, R);
+		ThetaCurve tc = new ThetaCurve(p1, p0, R);
 		if (flipped) {
 			tc.flip();
 		}

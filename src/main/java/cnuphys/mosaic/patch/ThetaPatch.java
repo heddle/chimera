@@ -1,12 +1,21 @@
 package cnuphys.mosaic.patch;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import cnuphys.mosaic.curve.BaseCurve;
+import cnuphys.mosaic.curve.PhiCurve;
+import cnuphys.mosaic.curve.TValue;
+import cnuphys.mosaic.curve.ThetaCurve;
 import cnuphys.mosaic.grid.CartesianGrid;
 import cnuphys.mosaic.grid.SphericalGrid;
 
 public class ThetaPatch extends BasePatch {
+
+	private ArrayList<TValue> _phiCrossings;
+
+	// the phi curves
+	private ArrayList<PhiCurve> _phiCurves;
 
 	/**
 	 * Constructs a ThetaPatch from a list of Curve objects.
@@ -23,7 +32,124 @@ public class ThetaPatch extends BasePatch {
 	public ThetaPatch(CartesianGrid cartGrid, SphericalGrid sphGrid, List<BaseCurve> curves, int nx, int ny, int nz,
 			int ntheta) {
 		super(cartGrid, sphGrid, curves, nx, ny, nz, ntheta);
+		getPhiCrossings();
 	}
+	
+	/**
+	 * Get the t values where a patch curve crosses a phi grid line
+	 *
+	 * @return a list of t values
+	 */
+	public List<TValue> getPhiCrossings() {
+		if (_phiCrossings == null) {
+			_phiCrossings = new ArrayList<>();
+
+			for (BaseCurve curve : curves) {
+				_phiCrossings.addAll(curve.getPhiCrossings());
+			}
+
+			// TODO deal with edge case where curve is its own patch
+		}
+
+		return _phiCrossings;
+	}
+	
+	
+	/**
+	 * Get the theta curves that will be used to make theta patches
+	 *
+	 * @return the theta curves
+	 */
+	public List<PhiCurve> getPhiCurves() {
+		if (_phiCurves == null) {
+			_phiCurves = new ArrayList<>();
+
+			// step one: make a shallow copy of the phi crossings
+			ArrayList<TValue> tvals = new ArrayList<>(getPhiCrossings());
+			
+			for (int i = 0; i < tvals.size(); i++) {
+                TValue tval0 = tvals.get(i);
+				double phi0 = tval0.value;
+				double theta0 = tval0.curve.theta(tval0.t);
+				boolean isPole = (Math.abs(theta0) < 1.0e04) || (Math.abs(Math.PI - theta0) < 1.0e-04);				
+				
+				
+				//TODO only consider the first pole
+				//TODO only connEct to the max theta not a pole
+				
+				
+				for (int j = 1; j < tvals.size(); j++) {
+					if (i == j) {
+						continue;
+					}
+					TValue tval1 = tvals.get(j);
+					double phi1 = tval1.value;
+					double theta1 = tval1.curve.theta(tval1.t);
+					if (!isPole) {
+						isPole = (Math.abs(theta1) < 1.0e04) || (Math.abs(Math.PI - theta1) < 1.0e-04);
+					}
+					
+					if (isPole || Math.abs(phi1 - phi0) < TOL) {
+						PhiCurve tc = PhiCurve.createPhiCurve(theta0, theta1, phi0, R);
+
+						if (tc.pathLength() < 1.0e-05) {
+							System.err.println("Phi curve too short: " + tc);
+						} else {
+							_phiCurves.add(tc);
+							System.out.println("Phi curve: " + tc);
+						}
+					}
+				}
+            }
+			
+			
+			
+
+//			ArrayList<TValue> unused = new ArrayList<>();
+//			while (!tvals.isEmpty()) {
+//				TValue tval = tvals.remove(0);
+//				double theta0 = tval.curve.theta(tval.t);
+//				
+//				boolean isPole = (Math.abs(theta0) < 1.0e04) || (Math.abs(Math.PI - theta0) < 1.0e-04);
+//				double phi0 = tval.value;
+//				
+//				boolean connected = false;
+//				for (int i = 0; i < tvals.size(); i++) {
+//					double phi1 = tvals.get(i).value;
+//					if (isPole || Math.abs(phi1 - phi0) < TOL) {
+//						double theta1 = tvals.get(i).curve.theta(tvals.get(i).t);
+//						PhiCurve tc = PhiCurve.createPhiCurve(theta0, theta1, phi0, R);
+//						if (tc.pathLength() < 1.0e-05) {
+//							System.err.println("Phi curve too short: " + tc);
+//						} else {
+//							_phiCurves.add(tc);
+//							System.out.println("Phi curve: " + tc);
+//							tvals.remove(i);
+//							connected = true;
+//							break;
+//						}
+////						if (curveContained(tc)) {
+////							_phiCurves.add(tc);
+////							tvals.remove(i);
+////							break;
+////						} else { // try other way
+////							System.err.println("Need a phi curve flip?");
+////						}
+//					} // if close enough
+//				} //end loop
+//				if (!connected) {
+//					unused.add(tval);
+//				}
+//			}
+//
+//			System.out.println("Unused: " + unused.size());
+		}
+		
+		BaseCurve.removeDuplicateCurves(curves);
+		return _phiCurves;
+	}
+	
+
 
 	/**
 	 * This is used for a prepatch that has no  crossings, covers the entire
@@ -33,10 +159,6 @@ public class ThetaPatch extends BasePatch {
 	 */
 	public static ThetaPatch createFromPrepatch(Prepatch prepatch) {
 		//check
-		if (prepatch.getThetaCrossings().size() > 0) {
-			throw new IllegalArgumentException("Prepatch has theta crossings.");
-		}
-
 		BaseCurve curve = prepatch.getCurves().get(0);
 		double theta = curve.getSV0().theta;
 		int itheta = prepatch.getSphericalGrid().getThetaGrid().locateInterval(theta);

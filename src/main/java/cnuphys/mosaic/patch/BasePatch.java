@@ -180,4 +180,9 @@ public abstract class BasePatch {
 	public abstract boolean containsPoint(double x, double y, double z);
 
 
+	@Override
+	public String toString() {
+		return tuple.toString();
+	}
+
 }

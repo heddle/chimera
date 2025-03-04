@@ -11,6 +11,7 @@ import cnuphys.mosaic.grid.SphericalGrid;
 import cnuphys.mosaic.util.Point3D;
 import cnuphys.mosaic.util.Point3D.Double;
 import cnuphys.mosaic.util.SphericalVector;
+import cnuphys.mosaic.util.ThetaPhi;
 
 public abstract class BaseCurve {
 
@@ -28,6 +29,9 @@ public abstract class BaseCurve {
 
 	///the theta crossings
 	protected List<TValue> _thetaCrossings;
+	
+	///the phi crossings
+	protected List<TValue> _phiCrossings;
 
 	/**
 	 * Constructs a curve on the surface of a sphere.
@@ -182,6 +186,44 @@ public abstract class BaseCurve {
 		}
 		return points;
 	}
+	
+	/**
+	 * Get the points of the curve as a ThetaPhi points for visualization.
+	 * @param n the number of points
+	 * @return the ThetaPhi points
+	 */
+	public ThetaPhi[] getThetaPhiPoints(int n) {
+		double dt = 1.0 / (n - 1);
+		ThetaPhi[] points = new ThetaPhi[n];
+
+		for (int i = 0; i < n; i++) {
+			double t = i * dt;
+			points[i] = new ThetaPhi(getRadius(), theta(t), phi(t));
+		}
+		return points;
+	}
+	
+	/**
+	 * Get the points of the curve as a polyline for 3D visualization.
+	 * @param t0 the starting parameter
+	 * @param t1 the ending parameter
+	 * @param n the number of points
+	 * @return the polyline points
+	 */
+	public float[] getPolyline(double t0, double t1, int n) {
+		double dt = (t1-t0) / (n - 1);
+		float[] points = new float[3 * n];
+
+		for (int i = 0; i < n; i++) {
+			double t = t0 + i * dt;
+			Point3D.Double p = getPoint(t);
+			points[3 * i] = (float) p.x;
+			points[3 * i + 1] = (float) p.y;
+			points[3 * i + 2] = (float) p.z;
+		}
+		return points;
+	}
+
 
 	/**
 	 * Checks if the endpoint of this curve connects to the start of another curve.
@@ -232,7 +274,7 @@ public abstract class BaseCurve {
 			// Check for sign change in this subinterval
 			if (theta1Index != theta2Index) {
 				double theta = sgrid.getThetaGrid().gridValue(minIndex + 1);
-				TValue tValue = new TValue(this, getThetaFunction(), theta, t1, t2, 1.0e-8);
+				TValue tValue = new TValue(this, getThetaFunction(), theta, t1, t2, 1.0e-10);
 				if (!java.lang.Double.isNaN(tValue.t)) {
 					_thetaCrossings.add(tValue);
 				}
@@ -242,6 +284,46 @@ public abstract class BaseCurve {
 
 		return _thetaCrossings;
 	}
+	
+	/**
+	 * Get the t values where the curve crosses a phi grid line
+	 * @return a list of t values
+	 */
+	public List<TValue> getPhiCrossings() {
+		if ((_phiCrossings != null) || (this instanceof PhiCurve)) {
+			return _phiCrossings;
+		}
+
+		SphericalGrid sgrid = Mosaic.getInstance().getSphericalGrid();
+		_phiCrossings = new ArrayList<>();
+
+
+		int numIntervals = 100;
+		double step = 1.0 / numIntervals;
+
+		//bracket any crossings
+		for (int i = 0; i < numIntervals; i++) {
+			double t1 = i * step;
+			double t2 = (i + 1) * step;
+			int phi1Index = sgrid.getPhiGrid().locateInterval(phi(t1));
+			int phi2Index = sgrid.getPhiGrid().locateInterval(phi(t2));
+			int minIndex = Math.min(phi1Index, phi2Index);
+
+
+			// Check for sign change in this subinterval
+			if (phi1Index != phi2Index) {
+				double phi = sgrid.getPhiGrid().gridValue(minIndex + 1);
+				TValue tValue = new TValue(this, getPhiFunction(), phi, t1, t2, 1.0e-10);
+				if (!java.lang.Double.isNaN(tValue.t)) {
+					_phiCrossings.add(tValue);
+				}
+			}
+		}
+
+
+		return _phiCrossings;
+	}
+
 
 	private static boolean sameNum(double a, double b) {
         return Math.abs(a - b) < TOL;
@@ -339,8 +421,8 @@ public abstract class BaseCurve {
     }
 
 	public String toString() {
-		return String.format("BaseCurve[p0=%s, p1=%s, R=%.2f sv0 = %s   sv1 = %s]",
-				p0, p1, R, sv0, sv1);
+		return String.format("p0 %s p1 %s sv0 %s sv1 %s len %.4f]",
+				p0, p1, sv0, sv1, pathLength());
 	}
 
 

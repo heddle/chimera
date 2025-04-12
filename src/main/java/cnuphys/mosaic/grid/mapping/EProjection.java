@@ -6,7 +6,7 @@ import cnuphys.bCNU.component.EnumComboBox;
 import cnuphys.mosaic.frame.Mosaic;
 
 public enum EProjection {
-	MOLLWEIDE, MERCATOR, ORTHOGRAPHIC, XY;
+	MOLLWEIDE, MERCATOR, ORTHOGRAPHIC, ARCHIMEDES, XY;
 
 	/**
 	 * A map for the names of the projections
@@ -17,6 +17,7 @@ public enum EProjection {
 		names.put(MOLLWEIDE, "Mollweide");
 		names.put(MERCATOR, "Mercator");
 		names.put(ORTHOGRAPHIC, "Orthographic");
+		names.put(ARCHIMEDES, "Archimedes");
         names.put(XY, "XY");
 	}
 
@@ -83,6 +84,8 @@ public enum EProjection {
 			return new OrthographicProjection(radius);
 		case XY:
 			return new XYProjection();
+		case ARCHIMEDES:
+			return new ArchimedesProjection();
 		}
        return null;
 

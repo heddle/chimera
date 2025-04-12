@@ -29,9 +29,8 @@ public class ThetaPatch extends BasePatch {
 	 * @param ntheta   The theta spherical grid index
 	 * @throws IllegalArgumentException if the curves do not form a closed loop.
 	 */
-	public ThetaPatch(CartesianGrid cartGrid, SphericalGrid sphGrid, List<BaseCurve> curves, int nx, int ny, int nz,
-			int ntheta) {
-		super(cartGrid, sphGrid, curves, nx, ny, nz, ntheta);
+	public ThetaPatch(CartesianGrid cartGrid, SphericalGrid sphGrid, List<BaseCurve> curves, int nx, int ny, int nz) {
+		super(cartGrid, sphGrid, curves, nx, ny, nz, avgThetaIndex(curves, sphGrid));
 		getPhiCrossings();
 	}
 	
@@ -159,11 +158,8 @@ public class ThetaPatch extends BasePatch {
 	 */
 	public static ThetaPatch createFromPrepatch(Prepatch prepatch) {
 		//check
-		BaseCurve curve = prepatch.getCurves().get(0);
-		double theta = curve.getSV0().theta;
-		int itheta = prepatch.getSphericalGrid().getThetaGrid().locateInterval(theta);
 		return new ThetaPatch(prepatch.getCartesianGrid(), prepatch.getSphericalGrid(), prepatch.getCurves(),
-				prepatch.getTuple().getNx(), prepatch.getTuple().getNy(), prepatch.getTuple().getNz(), itheta);
+				prepatch.getTuple().getNx(), prepatch.getTuple().getNy(), prepatch.getTuple().getNz());
 	}
 
 	/**

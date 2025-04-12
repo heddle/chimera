@@ -10,12 +10,24 @@ import com.jogamp.opengl.GLAutoDrawable;
 import bCNU3D.Support3D;
 import cnuphys.mosaic.curve.BaseCurve;
 import cnuphys.mosaic.frame.MapOverlayView2D;
+import cnuphys.mosaic.frame.Mosaic;
 import cnuphys.mosaic.patch.BasePatch;
+import cnuphys.mosaic.patch.Tuple;
 import cnuphys.mosaic.util.ThetaPhi;
 
 public class Drawing {
 	
 	private static Random random;
+	
+	private static Color[] mapColors1 = { Color.red, new Color(70, 130, 180), new Color(34, 200, 34), Color.yellow,
+			new Color(240, 230, 140), new Color(128, 128, 128), new Color(48, 48, 48), Color.orange,
+			new Color(95, 158, 160), new Color(200, 20, 60), Color.cyan, Color.pink };
+
+	private static Color[] monochromeColors = { new Color(32, 32, 32), new Color(64, 64, 64), new Color(96, 96, 96),
+			new Color(128, 128, 128), new Color(160, 160, 160), new Color(192, 192, 193) };
+
+	private static Color mapColors[] = Mosaic.monochrome ? monochromeColors : mapColors1;
+
 	
 	public static void curveDraw2D(Graphics g, MapOverlayView2D view, BaseCurve curve, Color color, int lineWidth) {
 		ThetaPhi[] points = curve.getThetaPhiPoints(50);
@@ -93,10 +105,9 @@ public class Drawing {
 	 * @param drawable the drawable
 	 * @param patch the patch to draw
 	 * @param lineColor the color of the lines
-	 * @param fillColor the color of the fill
 	 * @param lineWidth the width of the lines
 	 */
-	public static void drawPatch3D(GLAutoDrawable drawable, BasePatch patch, Color lineColor, Color fillColor, float lineWidth) {
+	public static void drawPatch3D(GLAutoDrawable drawable, BasePatch patch, Color lineColor,  float lineWidth) {
 
 		int n = 25;
 		double delta = 1.0 / n;
@@ -114,6 +125,7 @@ public class Drawing {
 			}
 		}
 
+		Color fillColor = Drawing.tupleColor(patch.getTuple());
 		Support3D.drawSphericalPolygon(drawable, (float)(patch.getRadius()), coords, null, fillColor, lineWidth);
 
 	}
@@ -123,5 +135,22 @@ public class Drawing {
 			random = new Random();
 		}
 		return new Color(random.nextFloat(), random.nextFloat(), random.nextFloat(), 0.2f);
+	}
+	
+	/**
+	 * Get the color of a tuple
+	 * 
+	 * @param tuple the tuple
+	 * @return the color
+	 */
+	public static Color tupleColor(Tuple tuple) {
+		int sum = 7*tuple.getNx() + 5 * tuple.getNy() + 3 * tuple.getNz();
+		if (tuple.length > 3) {
+			sum += tuple.getNtheta();
+		}
+		if (tuple.length > 4) {
+			sum += 2*tuple.getNphi();
+		}
+		return mapColors[sum % mapColors.length];
 	}
 }

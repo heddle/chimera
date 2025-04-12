@@ -257,7 +257,7 @@ public class Prepatch extends BasePatch {
 					}
 					if (success) {
 						ThetaPatch tp = new ThetaPatch(cartesianGrid, sphericalGrid, patchCurves, tuple.getNx(),
-								tuple.getNy(), tuple.getNz(), thetaCurve.getThetaIndex());
+								tuple.getNy(), tuple.getNz());
 						_thetaPatches.add(tp);
 					}
 

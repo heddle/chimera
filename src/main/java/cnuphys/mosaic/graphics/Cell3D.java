@@ -44,8 +44,6 @@ import item3D.Item3D;
  */
 public class Cell3D extends Item3D {
 
-	private static final Color prepatchColor = new Color(0, 0, 196, 80);
-	private static final Color thetaPatchColor = new Color(0, 196, 0, 80);
 	
 	private static final Color thetaIntersectColor = X11Colors.getX11Color("Light Sea Green");
 	private static final Color phiIntersectColor = X11Colors.getX11Color("Light Blue");
@@ -198,13 +196,13 @@ public class Cell3D extends Item3D {
 
 		//draw the prepatch
 		if (_annotations && cell3DOptionPanel.isPrepatch()) {
-			Drawing.drawPatch3D(drawable, prepatch, Color.black, prepatchColor, 3f);
+			Drawing.drawPatch3D(drawable, prepatch, Color.black, 3f);
 		}
 
 		if (_annotations && cell3DOptionPanel.isThetaPatches()) {
 			List<ThetaPatch> thetaPatches = prepatch.getThetaPatches();
 			for (ThetaPatch tp : thetaPatches) {
-				Drawing.drawPatch3D(drawable, tp, Color.black, thetaPatchColor, 3f);
+				Drawing.drawPatch3D(drawable, tp, Color.black, 3f);
 //				Drawing.drawPatch3D(drawable, tp, Color.black, Drawing.randomColor(), 3f);
 			}
 		}

@@ -31,7 +31,10 @@ import cnuphys.mosaic.grid.SphericalGrid;
 import cnuphys.mosaic.grid.TestGrid;
 import cnuphys.mosaic.monteCarlo.MonteCarloDialog;
 import cnuphys.mosaic.monteCarlo.MonteCarloPoint;
+import cnuphys.mosaic.patch.BasePatch;
+import cnuphys.mosaic.patch.Prepatch;
 import cnuphys.mosaic.patch.Tuple;
+import cnuphys.mosaic.util.Country;
 
 @SuppressWarnings("serial")
 public class Mosaic extends BaseMDIApplication {
@@ -66,6 +69,9 @@ public class Mosaic extends BaseMDIApplication {
 
 	//show all polar cells
 	private JMenuItem _showPolar;
+	
+	//write prePatches
+	private JMenuItem _writePrepatches;
 
 
 	/**
@@ -177,6 +183,10 @@ public class Mosaic extends BaseMDIApplication {
 	 */
 	private void createMenus() {
 		MenuManager mmgr = MenuManager.getInstance();
+		
+		///the file menu
+		addToFileMenu(mmgr.getFileMenu());
+		
 		// the options menu
 		addToOptionMenu(mmgr.getOptionMenu());
 
@@ -220,6 +230,30 @@ public class Mosaic extends BaseMDIApplication {
 		getJMenuBar().add(menu);
 
 
+	}
+	
+	private void addToFileMenu(JMenu fmenu) {
+		_writePrepatches = new JMenuItem("Write Prepatches");
+		_writePrepatches.addActionListener(e -> writePrepatches());
+		fmenu.add(_writePrepatches);
+	}
+	
+	private void writePrepatches() {		BasePatch d;
+		List<Prepatch> prepatches = _mosaicGrid.getPrepatches();
+		
+		if (prepatches == null || prepatches.isEmpty()) {
+			return;
+		}
+		//get home dir
+		String home = System.getProperty("user.home");
+		String filename = home + "/patches.json";
+		ArrayList<Country> countries = new ArrayList<>();
+		
+		for (Prepatch prepatch : prepatches) {
+			countries.add(new Country(prepatch, 10));
+		}
+		
+		Country.geoJson(countries, filename);
 	}
 
 	//show the whole grid

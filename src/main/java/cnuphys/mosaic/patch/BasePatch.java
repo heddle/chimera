@@ -185,4 +185,21 @@ public abstract class BasePatch {
 		return tuple.toString();
 	}
 
+	public static int avgThetaIndex(List<BaseCurve> curves, SphericalGrid sphericalGrid) {
+		double sum = 0;
+		int nstep = 5;
+		double dt = 1.0 / nstep;
+		int count = 0;
+		
+        for (BaseCurve curve : curves) {
+            for (int i = 0; i < nstep; i++) {
+                double t = i * dt;
+                sum += curve.theta(t);
+                count++;
+            }
+        }
+		double thetaAvg= sum/count;
+		return sphericalGrid.getThetaGrid().locateInterval(thetaAvg);
+		
+	}
 }

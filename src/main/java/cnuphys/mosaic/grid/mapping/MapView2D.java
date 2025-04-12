@@ -60,6 +60,10 @@ public class MapView2D extends BaseView implements MouseMotionListener {
 			xlim *= 1.1;
 			ylim *= 1.1;
 			break;
+		case ARCHIMEDES:
+			xlim = 1.1*Math.PI;
+			ylim = 1.1*Math.PI;
+           break;
 		default:
 			xlim *= 2.1;
 			ylim *= 1.4;

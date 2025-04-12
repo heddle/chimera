@@ -3,7 +3,7 @@ package cnuphys.mosaic.patch;
 public class Tuple {
 
 	private int[] indices;
-	private int length;
+	public int length;
 
     private static final String indexNames[] = {"Nx", "Ny", "Nz", "Ntheta", "Nphi"};
     private static final String patchNames[] = {"Prepatch", "Thetapatch", "Patch"};

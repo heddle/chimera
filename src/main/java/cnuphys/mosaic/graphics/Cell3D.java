@@ -113,8 +113,6 @@ public class Cell3D extends Item3D {
 		GL2 gl = drawable.getGL().getGL2();
 		gl.glPushMatrix();
 
-		Support3D.prepareForTransparent(drawable);
-
 		// Compute cell center and bounds.
 
 		double[] center = computeCenter(_corners);

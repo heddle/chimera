@@ -77,7 +77,6 @@ public class MosaicGridPanel3D extends Panel3D {
 
 	@Override
 	public void afterDraw(GLAutoDrawable drawable) {
-		Support3D.prepareForTransparent(drawable);
 		CartesianGrid cartGrid = _grid.getCartesianGrid();
 
 		Color lc = new Color(0, 0, 0, 32);
@@ -114,8 +113,6 @@ public class MosaicGridPanel3D extends Panel3D {
 				Support3D.drawLine(drawable, x, y, zMin, x, y, zMax, lc, lw);
 			}
 		}
-
-		Support3D.prepareForOpaque(drawable);
 
 	}
 
